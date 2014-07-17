@@ -18,21 +18,95 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Speech.Recognition;
+using System.Speech.Synthesis;
 using System.Windows.Forms;
 
 namespace iRacingPitCrew
 {
     public partial class Main : Form
     {
+        SpeechRecognitionEngine recognizer;
+        SpeechSynthesizer synthesizer;
+
         public Main()
         {
             InitializeComponent();
+        }
+
+        private void Main_Load(object sender, EventArgs e)
+        {
+            synthesizer = new SpeechSynthesizer();
+            synthesizer.Volume = 100;
+            synthesizer.Rate = -2;
+
+            recognizer = new SpeechRecognitionEngine();
+            recognizer.SetInputToDefaultAudioDevice();
+
+            var grammarFuelStrategy = new Grammar(new GrammarBuilder("pit crew. fuel strategy"));
+            grammarFuelStrategy.SpeechRecognized += grammarFuelStrategy_SpeechRecognized;
+
+            var gb = new GrammarBuilder();
+            gb.Append("pit crew. set fuel");
+            gb.Append(new SemanticResultKey("fuel_amount", Number()));
+            var grammarSetFuel = new Grammar(gb);
+            grammarSetFuel.SpeechRecognized += grammarSetFuel_SpeechRecognized;
+
+            var grammarTyreOff = new Grammar(new Choices( new GrammarBuilder("pit crew. no tyre change"), new GrammarBuilder("pit crew. tyre change off") ));
+            grammarTyreOff.SpeechRecognized += grammarTyreOff_SpeechRecognized;
+
+            var grammarRaceStatus = new Grammar(new GrammarBuilder("pit crew race status"));
+            grammarRaceStatus.SpeechRecognized += grammarRaceStatus_SpeechRecognized;
+
+            recognizer.LoadGrammar(grammarFuelStrategy);
+            recognizer.LoadGrammar(grammarSetFuel);
+            recognizer.LoadGrammar(grammarTyreOff);
+            recognizer.LoadGrammar(grammarRaceStatus);
+
+            recognizer.RecognizeAsync(RecognizeMode.Multiple);
+        }
+
+        void grammarRaceStatus_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            Trace.WriteLine("Race status is unknown");
+            synthesizer.Speak("Race status is unknown");
+        }
+
+        void grammarTyreOff_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            synthesizer.Speak("Will not be changing tyes at next pit stop.");
+        }
+
+        void grammarSetFuel_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            var a = (int)e.Result.Semantics["fuel_amount"].Value;
+
+            if (a == 0)
+            {
+                iRacingSDK.iRacing.PitCommand.Clear();
+                synthesizer.Speak("Clearing");
+            }
+            else
+            {
+                iRacingSDK.iRacing.PitCommand.SetFuel((int)a);
+                synthesizer.Speak(string.Format("Setting Fuel to {0}", a));
+            }
+        }
+
+        void grammarFuelStrategy_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            synthesizer.Speak("Fuel strategy is unknown.");
+        }
+        
+        Choices Number()
+        {
+            var digits = new Choices();
+
+            for (int i = 0; i < 101; i++)
+                digits.Add(new SemanticResultValue(i.ToString(), i));
+
+            return digits;
         }
     }
 }
