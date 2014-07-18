@@ -17,96 +17,65 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Speech.Recognition;
-using System.Speech.Synthesis;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace iRacingPitCrew
 {
     public partial class Main : Form
     {
-        SpeechRecognitionEngine recognizer;
-        SpeechSynthesizer synthesizer;
+        PitCrew pitCrew = new PitCrew();
 
         public Main()
         {
             InitializeComponent();
+
+            this.toolStripMenuItem_Open.Click += toolStripMenuItem_Open_Click;
+            this.toolStripMenuItem_Exit.Click += toolStripMenuItem_Exit_Click;
+            notifyIcon.Visible = false;
         }
 
-        private void Main_Load(object sender, EventArgs e)
+        void Main_Load(object sender, EventArgs e)
         {
-            synthesizer = new SpeechSynthesizer();
-            synthesizer.Volume = 100;
-            synthesizer.Rate = -2;
-
-            recognizer = new SpeechRecognitionEngine();
-            recognizer.SetInputToDefaultAudioDevice();
-
-            var grammarFuelStrategy = new Grammar(new GrammarBuilder("pit crew. fuel strategy"));
-            grammarFuelStrategy.SpeechRecognized += grammarFuelStrategy_SpeechRecognized;
-
-            var gb = new GrammarBuilder();
-            gb.Append("pit crew. set fuel");
-            gb.Append(new SemanticResultKey("fuel_amount", Number()));
-            var grammarSetFuel = new Grammar(gb);
-            grammarSetFuel.SpeechRecognized += grammarSetFuel_SpeechRecognized;
-
-            var grammarTyreOff = new Grammar(new Choices( new GrammarBuilder("pit crew. no tyre change"), new GrammarBuilder("pit crew. tyre change off") ));
-            grammarTyreOff.SpeechRecognized += grammarTyreOff_SpeechRecognized;
-
-            var grammarRaceStatus = new Grammar(new GrammarBuilder("pit crew race status"));
-            grammarRaceStatus.SpeechRecognized += grammarRaceStatus_SpeechRecognized;
-
-            recognizer.LoadGrammar(grammarFuelStrategy);
-            recognizer.LoadGrammar(grammarSetFuel);
-            recognizer.LoadGrammar(grammarTyreOff);
-            recognizer.LoadGrammar(grammarRaceStatus);
-
-            recognizer.RecognizeAsync(RecognizeMode.Multiple);
+            pitCrew.Start();
         }
 
-        void grammarRaceStatus_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        void Main_Resize(object sender, EventArgs e)
         {
-            Trace.WriteLine("Race status is unknown");
-            synthesizer.Speak("Race status is unknown");
-        }
-
-        void grammarTyreOff_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        {
-            synthesizer.Speak("Will not be changing tyes at next pit stop.");
-        }
-
-        void grammarSetFuel_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        {
-            var a = (int)e.Result.Semantics["fuel_amount"].Value;
-
-            if (a == 0)
+            if (WindowState == FormWindowState.Minimized)
             {
-                iRacingSDK.iRacing.PitCommand.Clear();
-                synthesizer.Speak("Clearing");
-            }
-            else
-            {
-                iRacingSDK.iRacing.PitCommand.SetFuel((int)a);
-                synthesizer.Speak(string.Format("Setting Fuel to {0}", a));
+                notifyIcon.Visible = true;
+                notifyIcon.ShowBalloonTip(500);
+                this.Hide();
             }
         }
 
-        void grammarFuelStrategy_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        void notifyIcon_Click(object sender, EventArgs e)
         {
-            synthesizer.Speak("Fuel strategy is unknown.");
+            notifyIcon.ContextMenuStrip.Show();
         }
-        
-        Choices Number()
+
+        void notifyIcon_MouseUp(object sender, MouseEventArgs e)
         {
-            var digits = new Choices();
+            if (e.Button == MouseButtons.Left)
+            {
+                var mi = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
+                mi.Invoke(notifyIcon, null);
+            }
+        }
 
-            for (int i = 0; i < 101; i++)
-                digits.Add(new SemanticResultValue(i.ToString(), i));
+        void toolStripMenuItem_Exit_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
 
-            return digits;
+        void toolStripMenuItem_Open_Click(object sender, EventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+
+            this.ShowInTaskbar = true;
+            notifyIcon.Visible = false;
         }
     }
 }
