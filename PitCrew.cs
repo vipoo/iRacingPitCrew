@@ -46,6 +46,9 @@ namespace iRacingPitCrew
             recognizer.LoadGrammar(TyreOff, "pit crew no tyre change");
             recognizer.LoadGrammar(TyreOff, "pit crew tyre change off");
 
+            recognizer.LoadGrammar(TyreOn, "pit crew change all tyres");
+            recognizer.LoadGrammar(TyreOn, "pit crew tyre change on");
+
             recognizer.LoadGrammar(SetFuel, g => {
                 g.Append("pit crew set fuel");
                 g.Append(new SemanticResultKey("fuel_amount", Number()));
@@ -66,20 +69,37 @@ namespace iRacingPitCrew
 
             var session = d.SessionData.SessionInfo.Sessions[d.Telemetry.SessionNum];
 
-            if (session.IsRace && session.IsLimitedTime)
+            if (!session.IsRace )
+            {
+                synthesizer.Speak("You are not in a race");
+                return;
+            }
+
+            if (session.IsLimitedTime)
             {
                 var sessionTimeSpanRemaining = TimeSpan.FromSeconds(d.Telemetry.SessionTimeRemain);
 
-                synthesizer.Speak(string.Format("There is {0} minutes remaining in this race.", (int)sessionTimeSpanRemaining.TotalMinutes));
+                synthesizer.Speak(string.Format("There are {0} minutes remaining in this race.", (int)sessionTimeSpanRemaining.TotalMinutes));
             }
-            else
-                synthesizer.Speak("You are not in a race");
+            else if( session.IsLimitedSessionLaps)
+            {
+                synthesizer.Speak(string.Format("There are {0} laps remaining in this race.", d.Telemetry.SessionLapsRemain));
+            }
+
+            synthesizer.Speak(string.Format("You {0} litres of fuel.", (int)d.Telemetry.FuelLevel));
         }
 
         void TyreOff(RecognitionResult rr)
         {
-            synthesizer.Speak("Will not be changing tyes at next pit stop.");
+            synthesizer.Speak("Will not be changing tyres at next pit stop.");
             iRacingSDK.iRacing.PitCommand.ClearTireChange();
+        }
+
+
+        void TyreOn(RecognitionResult rr)
+        {
+            synthesizer.Speak("We will change your tyes at next pit stop.");
+            iRacingSDK.iRacing.PitCommand.ChangeAllTyres();
         }
 
         void SetFuel(RecognitionResult rr)
