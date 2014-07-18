@@ -16,10 +16,12 @@
 // You should have received a copy of the GNU General Public License
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
+using System.Linq;
 using iRacingPitCrew.Support;
 using System.Diagnostics;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
+using System;
 
 namespace iRacingPitCrew
 {
@@ -37,6 +39,8 @@ namespace iRacingPitCrew
             recognizer = new SpeechRecognitionEngine();
             recognizer.SetInputToDefaultAudioDevice();
 
+            recognizer.LoadGrammar(ResetPitStop, "pit crew reset");
+
             recognizer.LoadGrammar(FuelStrategy, "pit crew fuel strategy");
             recognizer.LoadGrammar(RaceStatus, "pit crew race status");
             recognizer.LoadGrammar(TyreOff, "pit crew no tyre change");
@@ -50,15 +54,32 @@ namespace iRacingPitCrew
             recognizer.RecognizeAsync(RecognizeMode.Multiple);
         }
 
+        private void ResetPitStop(RecognitionResult obj)
+        {
+            iRacingSDK.iRacing.PitCommand.Clear();
+            synthesizer.Speak("No tyres fuel or windscreen cleaning at your next pit stop.");
+        }
+
         void RaceStatus(RecognitionResult rr)
         {
-            Trace.WriteLine("Race status is unknown");
-            synthesizer.Speak("Race status is unknown");
+            var d = iRacingSDK.iRacing.GetDataFeed().First();
+
+            var session = d.SessionData.SessionInfo.Sessions[d.Telemetry.SessionNum];
+
+            if (session.IsRace && session.IsLimitedTime)
+            {
+                var sessionTimeSpanRemaining = TimeSpan.FromSeconds(d.Telemetry.SessionTimeRemain);
+
+                synthesizer.Speak(string.Format("There is {0} minutes remaining in this race.", (int)sessionTimeSpanRemaining.TotalMinutes));
+            }
+            else
+                synthesizer.Speak("You are not in a race");
         }
 
         void TyreOff(RecognitionResult rr)
         {
             synthesizer.Speak("Will not be changing tyes at next pit stop.");
+            iRacingSDK.iRacing.PitCommand.ClearTireChange();
         }
 
         void SetFuel(RecognitionResult rr)
@@ -67,13 +88,13 @@ namespace iRacingPitCrew
 
             if (a == 0)
             {
-                iRacingSDK.iRacing.PitCommand.Clear();
-                synthesizer.Speak("Clearing");
+                iRacingSDK.iRacing.PitCommand.SetFuel(1);
+                synthesizer.Speak(string.Format("No fuel at your next pit stop.", a));
             }
             else
             {
                 iRacingSDK.iRacing.PitCommand.SetFuel((int)a);
-                synthesizer.Speak(string.Format("Setting Fuel to {0}", a));
+                synthesizer.Speak(string.Format("You will get {0} litres of fuel at next pit stop.", a));
             }
         }
 
