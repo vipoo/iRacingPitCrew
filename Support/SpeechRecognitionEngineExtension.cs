@@ -24,6 +24,11 @@ namespace iRacingPitCrew.Support
 {
     public static class SpeechRecognitionEngineExtension
     {
+        public static void LoadGrammar(this SpeechRecognitionEngine self, Action<RecognitionResult> speechReconized, string phrase)
+        {
+            self.LoadGrammar(r => true, speechReconized, phrase);
+        }
+
         public static void LoadGrammar(this SpeechRecognitionEngine self, Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, string phrase)
         {
             var g = new Grammar(new GrammarBuilder(phrase));

@@ -49,19 +49,21 @@ namespace iRacingPitCrew
 
         void dataCollector_Disconnected()
         {
-            synthesizer.Speak("Disconnected from I Racing, your pit crew have gone away.");
+            synthesizer.SpeakAsync("Disconnected from I Racing, your pit crew have gone away.");
         }
 
         void dataCollector_Connected()
         {
-            synthesizer.Speak("Connected to I Racing, your pit crew is standing by for your commands.");
+            synthesizer.SpeakAsync("Connected to I Racing, your pit crew is standing by for your commands.");
         }
 
         public void Start()
         {
             recognizer.SetInputToDefaultAudioDevice();
 
-            recognizer.LoadGrammar(ProcessPitCommand, HelpCommands, "pit crew help");
+            recognizer.LoadGrammar(HelpCommands, "pit crew help");
+            recognizer.LoadGrammar(Shutup, "pit crew quite");
+            recognizer.LoadGrammar(Shutup, "pit crew shut up");
 
             recognizer.LoadGrammar(ProcessPitCommand, ResetPitStop, "pit crew reset");
             recognizer.LoadGrammar(ProcessPitCommand, FuelStrategy, "pit crew fuel strategy");
@@ -83,9 +85,14 @@ namespace iRacingPitCrew
             dataCollector.Start();
         }
 
+        private void Shutup(RecognitionResult obj)
+        {
+            synthesizer.SpeakAsyncCancelAll();
+        }
+
         private void HelpCommands(RecognitionResult obj)
         {
-            synthesizer.Speak(HelpText);
+            synthesizer.SpeakAsync(HelpText);
         }
 
         internal void Stop()
@@ -108,14 +115,14 @@ namespace iRacingPitCrew
             if (dataCollector.IsConnectedToiRacing )
                 return true;
 
-            synthesizer.Speak("Disconnected from i racing.  Unable to process your command.");
+            synthesizer.SpeakAsync("Disconnected from i racing.  Unable to process your command.");
             return false;
         }
 
         void ResetPitStop(RecognitionResult rr)
         {
             iRacingSDK.iRacing.PitCommand.Clear();
-            synthesizer.Speak("No tyres fuel or windscreen cleaning at your next pit stop.");
+            synthesizer.SpeakAsync("No tyres fuel or windscreen cleaning at your next pit stop.");
         }
 
         void RaceStatus(RecognitionResult rr)
@@ -123,7 +130,7 @@ namespace iRacingPitCrew
             var d = dataCollector.Data;
             if( d == null)
             {
-                synthesizer.Speak("Yet to received any data from iRacing");
+                synthesizer.SpeakAsync("Yet to received any data from iRacing");
                 return;
             }
 
@@ -131,7 +138,7 @@ namespace iRacingPitCrew
 
             if (!session.IsRace )
             {
-                synthesizer.Speak("You are not in a race");
+                synthesizer.SpeakAsync("You are not in a race");
                 return;
             }
 
@@ -139,26 +146,26 @@ namespace iRacingPitCrew
             {
                 var sessionTimeSpanRemaining = TimeSpan.FromSeconds(d.Telemetry.SessionTimeRemain);
 
-                synthesizer.Speak(string.Format("There are {0} minutes remaining in this race.", (int)sessionTimeSpanRemaining.TotalMinutes));
+                synthesizer.SpeakAsync(string.Format("There are {0} minutes remaining in this race.", (int)sessionTimeSpanRemaining.TotalMinutes));
             }
             else if( session.IsLimitedSessionLaps)
             {
-                synthesizer.Speak(string.Format("There are {0} laps remaining in this race.", d.Telemetry.SessionLapsRemain));
+                synthesizer.SpeakAsync(string.Format("There are {0} laps remaining in this race.", d.Telemetry.SessionLapsRemain));
             }
 
-            synthesizer.Speak(string.Format("You {0} litres of fuel.", (int)d.Telemetry.FuelLevel));
-            synthesizer.Speak(string.Format("You are on lap {0}.", (int)d.Telemetry.FuelLevel));
+            synthesizer.SpeakAsync(string.Format("You {0} litres of fuel.", (int)d.Telemetry.FuelLevel));
+            synthesizer.SpeakAsync(string.Format("You are on lap {0}.", (int)d.Telemetry.FuelLevel));
         }
 
         void TyreOff(RecognitionResult rr)
         {
-            synthesizer.Speak("Will not be changing tyres at next pit stop.");
+            synthesizer.SpeakAsync("Will not be changing tyres at next pit stop.");
             iRacingSDK.iRacing.PitCommand.ClearTireChange();
         }
 
         void TyreOn(RecognitionResult rr)
         {
-            synthesizer.Speak("We will change your tyes at next pit stop.");
+            synthesizer.SpeakAsync("We will change your tyes at next pit stop.");
             iRacingSDK.iRacing.PitCommand.ChangeAllTyres();
         }
 
@@ -169,18 +176,18 @@ namespace iRacingPitCrew
             if (a == 0)
             {
                 iRacingSDK.iRacing.PitCommand.SetFuel(1);
-                synthesizer.Speak(string.Format("No fuel at your next pit stop.", a));
+                synthesizer.SpeakAsync(string.Format("No fuel at your next pit stop.", a));
             }
             else
             {
                 iRacingSDK.iRacing.PitCommand.SetFuel((int)a);
-                synthesizer.Speak(string.Format("You will get {0} litres of fuel at next pit stop.", a));
+                synthesizer.SpeakAsync(string.Format("You will get {0} litres of fuel at next pit stop.", a));
             }
         }
 
         void FuelStrategy(RecognitionResult rr)
         {
-            synthesizer.Speak(string.Format("Your average fuel usage is {0:0.00} litres per lap.", dataCollector.AverageFuelUsage));
+            synthesizer.SpeakAsync(string.Format("Your average fuel usage is {0:0.00} litres per lap.", dataCollector.AverageFuelUsage));
         }
 
         Choices Number()
