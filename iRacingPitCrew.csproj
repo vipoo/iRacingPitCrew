@@ -55,6 +55,8 @@
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
     <Compile Include="PitCrew.cs" />
+    <Compile Include="PitCrewCommands\PitCrewCommand.cs" />
+    <Compile Include="PitCrewCommands\FuelStrategy.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Support\LogToVoiceListener.cs" />

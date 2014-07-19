@@ -16,36 +16,32 @@
 // You should have received a copy of the GNU General Public License
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
-using System.Linq;
+using iRacingPitCrew.PitCrewCommands;
 using iRacingPitCrew.Support;
-using System.Diagnostics;
+using System;
+using System.Collections.Generic;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
-using System;
-using System.Threading;
 
 namespace iRacingPitCrew
 {
-    public class PitCrew
+    public class PitCrew : PitCrewCommand
     {
         public const string HelpText = "Your pit crew commands are as follows.  Reset. Fuel Strategy.  Race Status.  No Tyre Change.  Change All Tyres.  Set Fuel 'amount'";
 
-        readonly DataCollector dataCollector;
-        readonly SpeechRecognitionEngine recognizer;
-        readonly SpeechSynthesizer synthesizer;
+        readonly List<PitCrewCommand> pitCrewCommands = new List<PitCrewCommand>();
 
-        public PitCrew(DataCollector dataCollector)
+        public PitCrew(DataCollector dataCollector) : base(new SpeechRecognitionEngine(), dataCollector, new SpeechSynthesizer())
         {
-            this.dataCollector = dataCollector;
+            LogToVoiceListener.ToSpeech(synthesizer);
+
             this.dataCollector.Connected += dataCollector_Connected;
             this.dataCollector.Disconnected += dataCollector_Disconnected;
 
-            synthesizer = new SpeechSynthesizer();
             synthesizer.Volume = 100;
             synthesizer.Rate = -2;
-            LogToVoiceListener.ToSpeech(synthesizer);
 
-            recognizer = new SpeechRecognitionEngine();
+            pitCrewCommands.Add(new FuelStrategy(recognizer, dataCollector, synthesizer));
         }
 
         void dataCollector_Disconnected()
@@ -58,9 +54,12 @@ namespace iRacingPitCrew
             synthesizer.SpeakAsync("Connected to I Racing, your pit crew is standing by for your commands.");
         }
 
-        public void Start()
+        public override void Start()
         {
             recognizer.SetInputToDefaultAudioDevice();
+
+            foreach (var pcc in pitCrewCommands)
+                pcc.Start();
 
             recognizer.LoadGrammar(ProcessCommand, Debugging, g =>
             {
@@ -73,7 +72,6 @@ namespace iRacingPitCrew
             recognizer.LoadGrammar(ProcessCommand, Shutup, "pit crew shut up");
             recognizer.LoadGrammar(ProcessCommand, Shutup, "pit crew shutup");
             recognizer.LoadGrammar(ProcessPitCommand, ResetPitStop, "pit crew reset");
-            recognizer.LoadGrammar(ProcessPitCommand, FuelStrategy, "pit crew fuel strategy");
             recognizer.LoadGrammar(ProcessPitCommand, RaceStatus, "pit crew race status");
             recognizer.LoadGrammar(ProcessPitCommand, TyreOff, "pit crew no tyre change");
             recognizer.LoadGrammar(ProcessPitCommand, TyreOff, "pit crew tyre change off");
@@ -119,35 +117,6 @@ namespace iRacingPitCrew
         internal void Stop()
         {
             dataCollector.Stop();
-        }
-
-        bool ProcessCommand(RecognitionResult rr)
-        {
-            Trace.WriteLine("---------------------", "DEBUG");
-            foreach (var alt in rr.Alternates)
-                Trace.WriteLine(string.Format("{0:00.00}%, {1}", alt.Confidence * 100f, alt.Text), "DEBUG");
-
-            if (rr.Confidence < 0.9)
-            {
-                Trace.WriteLine("Ignore bad match", "INFO");
-                Trace.WriteLine("---------------------", "DEBUG");
-                return false;
-            }
-
-            Trace.WriteLine("---------------------", "DEBUG");
-            return true;
-        }
-
-        bool ProcessPitCommand(RecognitionResult rr)
-        {
-            if (!ProcessCommand(rr))
-                return false;
-
-            if (dataCollector.IsConnectedToiRacing )
-                return true;
-
-            synthesizer.SpeakAsync("Disconnected from i racing.  Unable to process your command.");
-            return false;
         }
 
         void ResetPitStop(RecognitionResult rr)
@@ -214,55 +183,6 @@ namespace iRacingPitCrew
                 iRacingSDK.iRacing.PitCommand.SetFuel((int)a);
                 synthesizer.SpeakAsync(string.Format("You will get {0} litres of fuel at next pit stop.", a));
             }
-        }
-
-        Prompt fuelStrategyPrompt;
-
-        void FuelStrategy(RecognitionResult rr)
-        {
-            var session = dataCollector.Data.SessionData.SessionInfo.Sessions[dataCollector.Data.Telemetry.SessionNum];
-            if( !session.IsRace )
-            {
-                recognizer.SetEnabled(false);
-
-                var pb = new PromptBuilder();
-                pb.AppendText("What is your race length?");
-                fuelStrategyPrompt = new Prompt(pb);
-                
-                synthesizer.SpeakAsync(fuelStrategyPrompt);
-
-                using (var rec = new SpeechRecognitionEngine())
-                {
-
-                    rec.LoadGrammar(ProcessCommand, rrr =>
-                    {
-                        var laps = (int)rrr.Semantics["amount"].Value;
-                        synthesizer.SpeakAsync(string.Format("Your race length is {0}", rrr.Text));
-                    }, g =>
-                    {
-                        g.Append(new SemanticResultKey("amount", Number()));
-                        g.Append(new Choices(new GrammarBuilder("laps"), new GrammarBuilder("minutes")));
-                    });
-
-                    rec.SetInputToDefaultAudioDevice();
-
-                    rec.Recognize(TimeSpan.FromSeconds(15));
-                }
-
-                recognizer.SetEnabled(true);
-            }
-            else
-                synthesizer.SpeakAsync(string.Format("Your average fuel usage is {0:0.00} litres per lap.", dataCollector.AverageFuelUsage));
-        }
-
-        Choices Number()
-        {
-            var digits = new Choices();
-
-            for (int i = 0; i < 121; i++)
-                digits.Add(new SemanticResultValue(i.ToString(), i));
-
-            return digits;
         }
     }
 }
