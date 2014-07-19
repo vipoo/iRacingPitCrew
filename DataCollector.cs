@@ -1,10 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// This file is part of iRacingPitCrew Application.
+//
+// Copyright 2014 Dean Netherton
+// https://github.com/vipoo/iRacingPitCrew.Net
+//
+// iRacingPitCrew is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// iRacingPitCrew is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
+
 using iRacingSDK;
-using System.Threading;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Diagnostics;
 
 namespace iRacingPitCrew
 {
@@ -65,14 +82,81 @@ namespace iRacingPitCrew
             }
         }
 
+        float averageFuelUsage;
+
+        public float AverageFuelUsage { get { return averageFuelUsage; } }
+
         void Process()
         {
-            foreach( var data in iracing.GetDataFeed())
+            var last5LapFuelUsage = new List<float>();
+            var lastLapNumber = -1;
+            var lastFuelAmount = 0f;
+            var startNewSession = true;
+            var onOutLap = false;
+            var onFastLap = false;
+
+            foreach (var data in iracing.GetDataFeed())
             {
                 if (requestCancel)
                     return;
 
                 lastestData = data;
+
+                if (!data.IsConnected)
+                    continue;
+
+                var telemetry = data.Telemetry;
+                var car = telemetry.CamCar;
+
+                if (car.TrackSurface == TrackLocation.NotInWorld)
+                {
+                    lastLapNumber = -1;
+                    startNewSession = true;
+                    onOutLap = false;
+                    onFastLap = false;
+                    lastFuelAmount = 0f;
+                    last5LapFuelUsage.Clear();
+                    continue;
+                }
+
+                var newLapStarted = car.Lap != lastLapNumber;
+                lastLapNumber =  car.Lap;
+
+                if( startNewSession && car.TrackSurface == TrackLocation.OnTrack)
+                {
+                    Trace.WriteLine("Starting out lap", "INFO");
+                    onOutLap = true;
+                    startNewSession = false;
+                    continue;
+                }
+
+                if( onOutLap && newLapStarted)
+                {
+                    Trace.WriteLine("Starting fast lap", "INFO");
+
+                    onOutLap = false;
+                    onFastLap = true;
+                    lastFuelAmount = telemetry.FuelLevel;
+                    continue;
+                }
+
+                if( onFastLap && newLapStarted )
+                {
+                    Trace.WriteLine("Lap Completed", "INFO");
+
+                    var fuelUsed = lastFuelAmount - telemetry.FuelLevel;
+                    lastFuelAmount = telemetry.FuelLevel;
+
+                    if (last5LapFuelUsage.Count >= 5)
+                        last5LapFuelUsage.RemoveAt(0);
+
+                    last5LapFuelUsage.Add(fuelUsed);
+
+                    averageFuelUsage = last5LapFuelUsage.Average();
+
+                    Trace.WriteLine(string.Format("Finished lap with fuel burn of {0}. Avg: {1}", fuelUsed, averageFuelUsage), "INFO");
+
+                }
             }
         }
     }

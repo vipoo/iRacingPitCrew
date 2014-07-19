@@ -27,6 +27,8 @@ namespace iRacingPitCrew
 {
     public class PitCrew
     {
+        public const string HelpText = "Your pit crew commands are as follows.  Reset. Fuel Strategy.  Race Status.  No Tyre Change.  Change All Tyres.  Set Fuel 'amount'";
+
         readonly DataCollector dataCollector;
         readonly SpeechRecognitionEngine recognizer;
         readonly SpeechSynthesizer synthesizer;
@@ -40,6 +42,7 @@ namespace iRacingPitCrew
             synthesizer = new SpeechSynthesizer();
             synthesizer.Volume = 100;
             synthesizer.Rate = -2;
+            LogToVoiceListener.ToSpeech(synthesizer);
 
             recognizer = new SpeechRecognitionEngine();
         }
@@ -47,8 +50,7 @@ namespace iRacingPitCrew
         void dataCollector_Disconnected()
         {
             synthesizer.Speak("Disconnected from I Racing, your pit crew have gone away.");
-
-        }   
+        }
 
         void dataCollector_Connected()
         {
@@ -58,6 +60,8 @@ namespace iRacingPitCrew
         public void Start()
         {
             recognizer.SetInputToDefaultAudioDevice();
+
+            recognizer.LoadGrammar(ProcessPitCommand, HelpCommands, "pit crew help");
 
             recognizer.LoadGrammar(ProcessPitCommand, ResetPitStop, "pit crew reset");
             recognizer.LoadGrammar(ProcessPitCommand, FuelStrategy, "pit crew fuel strategy");
@@ -79,6 +83,11 @@ namespace iRacingPitCrew
             dataCollector.Start();
         }
 
+        private void HelpCommands(RecognitionResult obj)
+        {
+            synthesizer.Speak(HelpText);
+        }
+
         internal void Stop()
         {
             dataCollector.Stop();
@@ -86,14 +95,14 @@ namespace iRacingPitCrew
 
         bool ProcessPitCommand(RecognitionResult rr)
         {
-            Trace.WriteLine(string.Format("Confidence is {0} percent", (int)(rr.Confidence * 100.0)));
-            Trace.WriteLine(string.Format("Alt couunt is {0}", (int)(rr.Alternates.Count)));
+            Trace.WriteLine(string.Format("Confidence is {0} percent", (int)(rr.Confidence * 100.0)), "DEBUG");
+            Trace.WriteLine(string.Format("Alt couunt is {0}", (int)(rr.Alternates.Count)), "DEBUG");
             foreach (var alt in rr.Alternates)
-                Trace.WriteLine(string.Format("{0}, {1}", alt.Confidence, alt.Text));
+                Trace.WriteLine(string.Format("{0}, {1}", alt.Confidence, alt.Text), "DEBUG");
 
             if( rr.Confidence < 0.9)
             {
-                Trace.WriteLine("Ignore bad match");
+                Trace.WriteLine("Ignore bad match", "INFO");
                 return false;
             }
             if (dataCollector.IsConnectedToiRacing )
@@ -139,7 +148,6 @@ namespace iRacingPitCrew
 
             synthesizer.Speak(string.Format("You {0} litres of fuel.", (int)d.Telemetry.FuelLevel));
             synthesizer.Speak(string.Format("You are on lap {0}.", (int)d.Telemetry.FuelLevel));
-
         }
 
         void TyreOff(RecognitionResult rr)
@@ -172,7 +180,7 @@ namespace iRacingPitCrew
 
         void FuelStrategy(RecognitionResult rr)
         {
-            synthesizer.Speak("Fuel strategy is unknown.");
+            synthesizer.Speak(string.Format("Your average fuel usage is {0:0.00} litres per lap.", dataCollector.AverageFuelUsage));
         }
 
         Choices Number()

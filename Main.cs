@@ -16,7 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
+using iRacingPitCrew.Support;
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 
@@ -28,6 +31,10 @@ namespace iRacingPitCrew
 
         public Main()
         {
+            var filename = string.Format("iRacingPitCrew-{0}.log", DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss"));
+
+            LogListener.ToFile(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), filename));
+
             InitializeComponent();
 
             this.toolStripMenuItem_Open.Click += toolStripMenuItem_Open_Click;

@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataCollector.cs" />
+    <Compile Include="Help.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -56,7 +57,9 @@
     <Compile Include="PitCrew.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Support\LogToVoiceListener.cs" />
     <Compile Include="Support\SpeechRecognitionEngineExtension.cs" />
+    <Compile Include="Support\LogListener.cs" />
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
     </EmbeddedResource>
