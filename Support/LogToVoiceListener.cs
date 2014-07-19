@@ -31,6 +31,7 @@ namespace iRacingPitCrew.Support
         static LogToVoiceListener logger;
         readonly SpeechSynthesizer synthesizer;
         public string FileName { get; internal set; }
+        static bool enabled = false;
 
         LogToVoiceListener(SpeechSynthesizer synthesizer)
         {
@@ -44,36 +45,41 @@ namespace iRacingPitCrew.Support
 
         public override void Write(string message)
         {
-            
         }
 
         public override void WriteLine(string message)
         {
-            //throw new NotImplementedException();
         }
 
         public override void WriteLine(string message, string category)
         {
-            base.WriteLine(message, category);
-
-            if( category == "INFO")
-                synthesizer.SpeakAsync(message);
-
+            Write(message, category);
         }
 
         public override void Write(string message, string category)
         {
             base.Write(message, category);
 
-            if (category == "INFO")
+            if (category == "INFO" && enabled)
                 synthesizer.SpeakAsync(message);
         }
-
 
         internal static void ToSpeech(SpeechSynthesizer synthesizer)
         {
             logger = new LogToVoiceListener(synthesizer);
             Trace.Listeners.Add(logger);
+        }
+
+        internal static void Enable()
+        {
+            enabled = true;
+            Trace.WriteLine("Logging turned on.", "INFO");
+        }
+
+        internal static void Disable()
+        {
+            Trace.WriteLine("Logging turned off.", "INFO");
+            enabled = false;
         }
     }
 }

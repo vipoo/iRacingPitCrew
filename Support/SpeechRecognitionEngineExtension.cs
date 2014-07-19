@@ -37,6 +37,11 @@ namespace iRacingPitCrew.Support
             self.LoadGrammar(g);
         }
 
+        public static void LoadGrammar(this SpeechRecognitionEngine self, Action<RecognitionResult> speechReconized, Action<GrammarBuilder> builder)
+        {
+            self.LoadGrammar(r => true, speechReconized, builder);
+        }
+
         public static void LoadGrammar(this SpeechRecognitionEngine self, Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, Action<GrammarBuilder> builder)
         {
             var gb = new GrammarBuilder();

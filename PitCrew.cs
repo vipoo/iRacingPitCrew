@@ -61,9 +61,15 @@ namespace iRacingPitCrew
         {
             recognizer.SetInputToDefaultAudioDevice();
 
-            recognizer.LoadGrammar(HelpCommands, "pit crew help");
-            recognizer.LoadGrammar(Shutup, "pit crew quite");
-            recognizer.LoadGrammar(Shutup, "pit crew shut up");
+            recognizer.LoadGrammar(ProcessCommand, HelpCommands, "pit crew help");
+            recognizer.LoadGrammar(ProcessCommand, Shutup, "pit crew quite");
+            recognizer.LoadGrammar(ProcessCommand, Shutup, "pit crew shut up");
+
+            recognizer.LoadGrammar(ProcessCommand, Debugging, g =>
+            {
+                g.Append("pit crew debug");
+                g.Append(new Choices(new GrammarBuilder("on"), new GrammarBuilder("off")));
+            });
 
             recognizer.LoadGrammar(ProcessPitCommand, ResetPitStop, "pit crew reset");
             recognizer.LoadGrammar(ProcessPitCommand, FuelStrategy, "pit crew fuel strategy");
@@ -85,6 +91,14 @@ namespace iRacingPitCrew
             dataCollector.Start();
         }
 
+        private void Debugging(RecognitionResult rr)
+        {
+            if( rr.Text == "pit crew debug on")
+                LogToVoiceListener.Enable();
+            else
+                LogToVoiceListener.Disable();
+        }
+
         private void Shutup(RecognitionResult obj)
         {
             synthesizer.SpeakAsyncCancelAll();
@@ -100,18 +114,28 @@ namespace iRacingPitCrew
             dataCollector.Stop();
         }
 
-        bool ProcessPitCommand(RecognitionResult rr)
+        bool ProcessCommand(RecognitionResult rr)
         {
-            Trace.WriteLine(string.Format("Confidence is {0} percent", (int)(rr.Confidence * 100.0)), "DEBUG");
-            Trace.WriteLine(string.Format("Alt couunt is {0}", (int)(rr.Alternates.Count)), "DEBUG");
+            Trace.WriteLine("---------------------", "DEBUG");
             foreach (var alt in rr.Alternates)
-                Trace.WriteLine(string.Format("{0}, {1}", alt.Confidence, alt.Text), "DEBUG");
+                Trace.WriteLine(string.Format("{0:00.00}%, {1}", alt.Confidence * 100f, alt.Text), "DEBUG");
 
-            if( rr.Confidence < 0.9)
+            if (rr.Confidence < 0.9)
             {
                 Trace.WriteLine("Ignore bad match", "INFO");
+                Trace.WriteLine("---------------------", "DEBUG");
                 return false;
             }
+
+            Trace.WriteLine("---------------------", "DEBUG");
+            return true;
+        }
+
+        bool ProcessPitCommand(RecognitionResult rr)
+        {
+            if (!ProcessCommand(rr))
+                return false;
+
             if (dataCollector.IsConnectedToiRacing )
                 return true;
 
