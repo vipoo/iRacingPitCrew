@@ -22,6 +22,7 @@ using System.Diagnostics;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
 using System;
+using System.Threading;
 
 namespace iRacingPitCrew
 {
@@ -61,34 +62,40 @@ namespace iRacingPitCrew
         {
             recognizer.SetInputToDefaultAudioDevice();
 
-            recognizer.LoadGrammar(ProcessCommand, HelpCommands, "pit crew help");
-            recognizer.LoadGrammar(ProcessCommand, Shutup, "pit crew quite");
-            recognizer.LoadGrammar(ProcessCommand, Shutup, "pit crew shut up");
-
             recognizer.LoadGrammar(ProcessCommand, Debugging, g =>
             {
                 g.Append("pit crew debug");
                 g.Append(new Choices(new GrammarBuilder("on"), new GrammarBuilder("off")));
             });
 
+            recognizer.LoadGrammar(ProcessCommand, HelpCommands, "pit crew help");
+            recognizer.LoadGrammar(ProcessCommand, Shutup, "pit crew quite");
+            recognizer.LoadGrammar(ProcessCommand, Shutup, "pit crew shut up");
+            recognizer.LoadGrammar(ProcessCommand, Shutup, "pit crew shutup");
             recognizer.LoadGrammar(ProcessPitCommand, ResetPitStop, "pit crew reset");
             recognizer.LoadGrammar(ProcessPitCommand, FuelStrategy, "pit crew fuel strategy");
             recognizer.LoadGrammar(ProcessPitCommand, RaceStatus, "pit crew race status");
             recognizer.LoadGrammar(ProcessPitCommand, TyreOff, "pit crew no tyre change");
             recognizer.LoadGrammar(ProcessPitCommand, TyreOff, "pit crew tyre change off");
-
             recognizer.LoadGrammar(ProcessPitCommand, TyreOn, "pit crew change all tyres");
             recognizer.LoadGrammar(ProcessPitCommand, TyreOn, "pit crew tyre change on");
-
+            
             recognizer.LoadGrammar(ProcessPitCommand, SetFuel, g =>
             {
                 g.Append("pit crew set fuel");
                 g.Append(new SemanticResultKey("fuel_amount", Number()));
             });
 
+            recognizer.SetEnabled(true);
+
             recognizer.RecognizeAsync(RecognizeMode.Multiple);
 
             dataCollector.Start();
+        }
+
+        private void RaceLength(RecognitionResult obj)
+        {
+            throw new NotImplementedException();
         }
 
         private void Debugging(RecognitionResult rr)
@@ -209,9 +216,43 @@ namespace iRacingPitCrew
             }
         }
 
+        Prompt fuelStrategyPrompt;
+
         void FuelStrategy(RecognitionResult rr)
         {
-            synthesizer.SpeakAsync(string.Format("Your average fuel usage is {0:0.00} litres per lap.", dataCollector.AverageFuelUsage));
+            var session = dataCollector.Data.SessionData.SessionInfo.Sessions[dataCollector.Data.Telemetry.SessionNum];
+            if( !session.IsRace )
+            {
+                recognizer.SetEnabled(false);
+
+                var pb = new PromptBuilder();
+                pb.AppendText("What is your race length?");
+                fuelStrategyPrompt = new Prompt(pb);
+                
+                synthesizer.SpeakAsync(fuelStrategyPrompt);
+
+                using (var rec = new SpeechRecognitionEngine())
+                {
+
+                    rec.LoadGrammar(ProcessCommand, rrr =>
+                    {
+                        var laps = (int)rrr.Semantics["amount"].Value;
+                        synthesizer.SpeakAsync(string.Format("Your race length is {0}", rrr.Text));
+                    }, g =>
+                    {
+                        g.Append(new SemanticResultKey("amount", Number()));
+                        g.Append(new Choices(new GrammarBuilder("laps"), new GrammarBuilder("minutes")));
+                    });
+
+                    rec.SetInputToDefaultAudioDevice();
+
+                    rec.Recognize(TimeSpan.FromSeconds(15));
+                }
+
+                recognizer.SetEnabled(true);
+            }
+            else
+                synthesizer.SpeakAsync(string.Format("Your average fuel usage is {0:0.00} litres per lap.", dataCollector.AverageFuelUsage));
         }
 
         Choices Number()

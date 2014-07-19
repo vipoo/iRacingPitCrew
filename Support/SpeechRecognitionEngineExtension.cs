@@ -17,13 +17,49 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Speech.Recognition;
+using System.Linq;
 
 namespace iRacingPitCrew.Support
 {
     public static class SpeechRecognitionEngineExtension
     {
+        static Dictionary<WeakReference, bool> engines = new Dictionary<WeakReference, bool>();
+
+        public static void SetEnabled(this SpeechRecognitionEngine self, bool enabled)
+        {
+            var found = engines.Select( wr => new { Key = wr.Key, Value = wr.Value}).FirstOrDefault( wr => wr.Key.Target == self);
+            
+            if( found != null )
+                engines.Remove( found.Key );
+
+            engines.Add(new WeakReference(self), enabled);
+        }
+
+        public static bool IsEnabled(this SpeechRecognitionEngine self)
+        {
+            var found = engines.Select(wr => new { Key = wr.Key, Value = wr.Value }).FirstOrDefault(wr => wr.Key.Target == self);
+
+            if (found == null)
+                return true;
+
+            return found.Value;
+        }
+
+        static void CleanEngines()
+        {
+            var found = engines.Select(wr => new { Key = wr.Key, Value = wr.Value }).FirstOrDefault(wr => wr.Key.Target == null);
+
+            while( found != null )
+            {
+                engines.Remove(found.Key);
+
+                found = engines.Select(wr => new { Key = wr.Key, Value = wr.Value }).FirstOrDefault(wr => wr.Key.Target == null);
+            }
+        }
+
         public static void LoadGrammar(this SpeechRecognitionEngine self, Action<RecognitionResult> speechReconized, string phrase)
         {
             self.LoadGrammar(r => true, speechReconized, phrase);
@@ -32,7 +68,7 @@ namespace iRacingPitCrew.Support
         public static void LoadGrammar(this SpeechRecognitionEngine self, Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, string phrase)
         {
             var g = new Grammar(new GrammarBuilder(phrase));
-            g.SpeechRecognized += (s, e) => SpeechReconized(reconizerGuard, speechReconized, e);
+            g.SpeechRecognized += (s, e) => SpeechReconized(self, reconizerGuard, speechReconized, e);
 
             self.LoadGrammar(g);
         }
@@ -48,16 +84,16 @@ namespace iRacingPitCrew.Support
             builder(gb);
 
             var g = new Grammar(gb);
-            g.SpeechRecognized += (s, e) => SpeechReconized(reconizerGuard, speechReconized, e);
+            g.SpeechRecognized += (s, e) => SpeechReconized(self, reconizerGuard, speechReconized, e);
 
             self.LoadGrammar(g);
         }
 
-        static void SpeechReconized(Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, SpeechRecognizedEventArgs e)
+        static void SpeechReconized(SpeechRecognitionEngine self, Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, SpeechRecognizedEventArgs e)
         {
             try
             {
-                if( reconizerGuard(e.Result))
+                if( self.IsEnabled() && reconizerGuard(e.Result))
                     speechReconized(e.Result);
             }
             catch(Exception ex)
