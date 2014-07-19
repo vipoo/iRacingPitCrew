@@ -17,29 +17,45 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using System.Speech.Recognition;
 
 namespace iRacingPitCrew.Support
 {
     public static class SpeechRecognitionEngineExtension
     {
-        public static void LoadGrammar(this SpeechRecognitionEngine self, Action<RecognitionResult> speechReconized, string phrase)
+        public static void LoadGrammar(this SpeechRecognitionEngine self, Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, string phrase)
         {
             var g = new Grammar(new GrammarBuilder(phrase));
-            g.SpeechRecognized += (s, e) => speechReconized(e.Result);
+            g.SpeechRecognized += (s, e) => SpeechReconized(reconizerGuard, speechReconized, e);
 
             self.LoadGrammar(g);
         }
 
-        public static void LoadGrammar(this SpeechRecognitionEngine self, Action<RecognitionResult> speechReconized, Action<GrammarBuilder> builder)
+        public static void LoadGrammar(this SpeechRecognitionEngine self, Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, Action<GrammarBuilder> builder)
         {
             var gb = new GrammarBuilder();
             builder(gb);
 
             var g = new Grammar(gb);
-            g.SpeechRecognized += (s, e) => speechReconized(e.Result);
+            g.SpeechRecognized += (s, e) => SpeechReconized(reconizerGuard, speechReconized, e);
 
             self.LoadGrammar(g);
+        }
+
+        static void SpeechReconized(Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, SpeechRecognizedEventArgs e)
+        {
+            try
+            {
+                if( reconizerGuard(e.Result))
+                    speechReconized(e.Result);
+            }
+            catch(Exception ex)
+            {
+                Trace.WriteLine("Error in speech recognition handler", "DEBUG");
+                Trace.WriteLine(ex.Message, "DEBUG");
+                Trace.WriteLine(ex.StackTrace, "DEBUG");
+            }
         }
     }
 }

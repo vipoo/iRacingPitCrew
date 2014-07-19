@@ -24,7 +24,7 @@ namespace iRacingPitCrew
 {
     public partial class Main : Form
     {
-        PitCrew pitCrew = new PitCrew();
+        PitCrew pitCrew;
 
         public Main()
         {
@@ -33,6 +33,22 @@ namespace iRacingPitCrew
             this.toolStripMenuItem_Open.Click += toolStripMenuItem_Open_Click;
             this.toolStripMenuItem_Exit.Click += toolStripMenuItem_Exit_Click;
             notifyIcon.Visible = false;
+
+            var dc = new DataCollector();
+            pitCrew = new PitCrew(dc);
+
+            dc.Connected += dc_Connected;
+            dc.Disconnected += dc_Disconnected;
+        }
+
+        void dc_Disconnected()
+        {
+            iRacingConnectionStatus.Text = "Disconnected";
+        }
+
+        void dc_Connected()
+        {
+            iRacingConnectionStatus.Text = "Connected";
         }
 
         void Main_Load(object sender, EventArgs e)
@@ -76,6 +92,11 @@ namespace iRacingPitCrew
 
             this.ShowInTaskbar = true;
             notifyIcon.Visible = false;
+        }
+
+        private void Main_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            pitCrew.Stop();
         }
     }
 }

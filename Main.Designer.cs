@@ -35,6 +35,8 @@
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem_Open = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_Exit = new System.Windows.Forms.ToolStripMenuItem();
+            this.iRacingConnectionStatus = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -79,14 +81,37 @@
             this.toolStripMenuItem_Exit.Size = new System.Drawing.Size(103, 22);
             this.toolStripMenuItem_Exit.Text = "Exit";
             // 
+            // iRacingConnectionStatus
+            // 
+            this.iRacingConnectionStatus.AutoSize = true;
+            this.iRacingConnectionStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.iRacingConnectionStatus.Location = new System.Drawing.Point(88, 64);
+            this.iRacingConnectionStatus.Name = "iRacingConnectionStatus";
+            this.iRacingConnectionStatus.Size = new System.Drawing.Size(107, 20);
+            this.iRacingConnectionStatus.TabIndex = 1;
+            this.iRacingConnectionStatus.Text = "Disconnected";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(22, 64);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(60, 20);
+            this.label3.TabIndex = 2;
+            this.label3.Text = "Status:";
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(753, 239);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.iRacingConnectionStatus);
             this.Controls.Add(this.label1);
             this.Name = "Main";
             this.Text = "Form1";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Main_FormClosed);
             this.Load += new System.EventHandler(this.Main_Load);
             this.Resize += new System.EventHandler(this.Main_Resize);
             this.contextMenuStrip.ResumeLayout(false);
@@ -102,6 +127,8 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_Open;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_Exit;
+        private System.Windows.Forms.Label iRacingConnectionStatus;
+        private System.Windows.Forms.Label label3;
     }
 }
 
