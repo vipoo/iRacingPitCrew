@@ -17,6 +17,7 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 using iRacingSDK;
+using iRacingSDK.Support;
 using System;
 using System.Diagnostics;
 
@@ -38,13 +39,24 @@ namespace iRacingPitCrew.DataCollection
                 var telemetry = data.Telemetry;
                 var car = telemetry.CamCar;
 
+                if( telemetry.Lap == 0)
+                {
+                    Trace.WriteLine("Got a 0 lap");
+                    return true;
+                }
+
                 var newLapStarted = car.Lap != lastLapNumber;
+                if( newLapStarted)
+                {
+                    Trace.WriteLine("New Lap started.  From {0} to {1}".F(lastLapNumber, car.Lap), "INFO");
+                }
+
                 lastLapNumber = car.Lap;
 
                 if (car.TrackSurface == TrackLocation.NotInWorld)
                 {
                     if (!startNewSession)
-                        Trace.WriteLine("Car in NotInWorld");
+                        Trace.WriteLine("Car in NotInWorld", "INFO");
 
                     lastLapNumber = -1;
                     startNewSession = true;

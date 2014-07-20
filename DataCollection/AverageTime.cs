@@ -17,6 +17,7 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 using iRacingSDK;
+using iRacingSDK.Support;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -52,7 +53,7 @@ namespace iRacingPitCrew.DataCollection
 
                         var average = last5Laps.Average();
 
-                        Trace.WriteLine(string.Format("Finished lap with fuel burn of {0}. Avg: {1}", telemetry.LapLastLapTime, average), "INFO");
+                        Trace.WriteLine("Finished lap with time: {0}.  Average of: {1}".F(telemetry.LapLastLapTime, average), "INFO");
 
                         newAverage(average);
                         break;

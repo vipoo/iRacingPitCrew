@@ -84,8 +84,14 @@ namespace iRacingPitCrew
             var averageFuelPerLap = AverageFuelUsage.Capture(avg => AverageFuelPerLap = avg);
             var onEachLap = OnEachLap.Capture( (d, t) => averageFuelPerLap(d, t) && averageLapTime(d,t));
             var data = CaptureLatestData(onEachLap);
+            var connected = ConnectedDataOnly(data);
 
-            iracing.GetDataFeed().EmitTo(StopOnRequestCancel(data));
+            iracing.GetDataFeed().EmitTo(StopOnRequestCancel(connected));
+        }
+
+        Func<DataSample, bool> ConnectedDataOnly(Func<DataSample, bool> next)
+        {
+            return data => data.IsConnected &&  next(data);
         }
 
         Func<DataSample, bool> StopOnRequestCancel(Func<DataSample, bool> next)
