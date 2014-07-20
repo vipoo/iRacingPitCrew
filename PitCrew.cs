@@ -84,8 +84,6 @@ namespace iRacingPitCrew
                 g.Append(new SemanticResultKey("fuel_amount", Number()));
             });
 
-            recognizer.SetEnabled(true);
-
             recognizer.RecognizeAsync(RecognizeMode.Multiple);
 
             dataCollector.Start();
