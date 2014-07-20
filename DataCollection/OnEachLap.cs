@@ -41,7 +41,9 @@ namespace iRacingPitCrew.DataCollection
 
                 if( telemetry.Lap == 0)
                 {
-                    Trace.WriteLine("Got a 0 lap");
+                    if( lastLapNumber != 0)
+                        Trace.WriteLine("Got a 0 lap");
+                    lastLapNumber = 0;
                     return true;
                 }
 

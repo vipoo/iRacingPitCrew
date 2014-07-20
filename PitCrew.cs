@@ -35,6 +35,8 @@ namespace iRacingPitCrew
         {
             LogToVoiceListener.ToSpeech(synthesizer);
 
+            recognizer.UpdateRecognizerSetting("CFGConfidenceRejectionThreshold", 90);
+
             this.dataCollector.Connected += dataCollector_Connected;
             this.dataCollector.Disconnected += dataCollector_Disconnected;
 
@@ -42,6 +44,7 @@ namespace iRacingPitCrew
             synthesizer.Rate = -2;
 
             pitCrewCommands.Add(new FuelStrategy(recognizer, dataCollector, synthesizer));
+            pitCrewCommands.Add(new SetFuel(recognizer, dataCollector, synthesizer));
         }
 
         void dataCollector_Disconnected()
@@ -78,21 +81,11 @@ namespace iRacingPitCrew
             recognizer.LoadGrammar(ProcessPitCommand, TyreOn, "pit crew change all tyres");
             recognizer.LoadGrammar(ProcessPitCommand, TyreOn, "pit crew tyre change on");
             
-            recognizer.LoadGrammar(ProcessPitCommand, SetFuel, g =>
-            {
-                g.Append("pit crew set fuel");
-                g.Append(new SemanticResultKey("fuel_amount", Number()));
-            });
-
             recognizer.RecognizeAsync(RecognizeMode.Multiple);
 
             dataCollector.Start();
         }
 
-        private void RaceLength(RecognitionResult obj)
-        {
-            throw new NotImplementedException();
-        }
 
         private void Debugging(RecognitionResult rr)
         {
@@ -165,22 +158,6 @@ namespace iRacingPitCrew
         {
             synthesizer.SpeakAsync("We will change your tyes at next pit stop.");
             iRacingSDK.iRacing.PitCommand.ChangeAllTyres();
-        }
-
-        void SetFuel(RecognitionResult rr)
-        {
-            var a = (int)rr.Semantics["fuel_amount"].Value;
-
-            if (a == 0)
-            {
-                iRacingSDK.iRacing.PitCommand.SetFuel(1);
-                synthesizer.SpeakAsync(string.Format("No fuel at your next pit stop.", a));
-            }
-            else
-            {
-                iRacingSDK.iRacing.PitCommand.SetFuel((int)a);
-                synthesizer.SpeakAsync(string.Format("You will get {0} litres of fuel at next pit stop.", a));
-            }
         }
     }
 }

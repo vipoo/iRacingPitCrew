@@ -59,6 +59,7 @@
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
     <Compile Include="PitCrew.cs" />
+    <Compile Include="PitCrewCommands\SetFuel.cs" />
     <Compile Include="PitCrewCommands\PitCrewCommand.cs" />
     <Compile Include="PitCrewCommands\FuelStrategy.cs" />
     <Compile Include="Program.cs" />
