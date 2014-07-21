@@ -47,6 +47,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataCollection\LapTransition.cs" />
+    <Compile Include="DataCollection\EmitToAll.cs" />
+    <Compile Include="DataCollection\OnEachSessionUpdate.cs" />
     <Compile Include="DataCollection\OnEachLap.cs" />
     <Compile Include="DataCollector.cs" />
     <Compile Include="DataCollection\AverageTime.cs" />

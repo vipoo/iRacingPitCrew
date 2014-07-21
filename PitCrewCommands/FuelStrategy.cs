@@ -17,11 +17,9 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 using iRacingPitCrew.Support;
-using System;
-using System.Diagnostics;
+using iRacingSDK.Support;
 using System.Speech.Recognition;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace iRacingPitCrew.PitCrewCommands
 {
@@ -83,11 +81,11 @@ namespace iRacingPitCrew.PitCrewCommands
                 synthesizer.SpeakAsync(string.Format("You will need a total of {0:0.00} litres", dataCollector.AverageFuelPerLap * raceLaps));
             }
 
-            if( dataCollector.AverageLapTime > 0 )
+            if( dataCollector.AverageLapTimeSpan.TotalSeconds > 0 )
             {
-                var t = TimeSpan.FromSeconds(dataCollector.AverageLapTime);
+                var t = dataCollector.AverageLapTimeSpan;
                 
-                synthesizer.SpeakAsync(string.Format("Your average lap time is {0:0}, {0:00.00}.", (int)t.TotalMinutes, (float)t.Seconds + ((float)t.Milliseconds)/1000f));
+                synthesizer.SpeakAsync("Your average lap time is {0:0}, {0:00.00}.".F((int)t.TotalMinutes, (float)t.Seconds + ((float)t.Milliseconds)/1000f));
             }
         }
 

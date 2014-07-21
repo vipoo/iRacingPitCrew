@@ -17,23 +17,23 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 using iRacingSDK;
-using iRacingSDK.Support;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 namespace iRacingPitCrew.DataCollection
 {
-    public static class AverageTime
+    public static class OnEachSessionUpdate
     {
-        public static Func<DataSample, bool> Capture(Action<TimeSpan> newAverage)
+        public static Func<DataSample, bool> Capture(Func<DataSample, bool> next)
         {
-            return data => 
+            var lastSessionInfoUpdate = -1;
+
+            return data =>
             {
-                Trace.WriteLine("Recorded new lap time of {0}".F(data.Telemetry.CamCar.LastTimeSpan), "INFO");
-                newAverage(data.Telemetry.CamCar.LastTimeSpan); 
-                return true;
+                if (!data.IsConnected || data.SessionData.InfoUpdate == lastSessionInfoUpdate)
+                    return true;
+
+                lastSessionInfoUpdate = data.SessionData.InfoUpdate;
+                return next(data);
             };
         }
     }

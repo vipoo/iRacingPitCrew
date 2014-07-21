@@ -19,20 +19,19 @@
 using iRacingSDK;
 using iRacingSDK.Support;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace iRacingPitCrew.DataCollection
 {
-    public static class AverageTime
+    public static class EmitTo
     {
-        public static Func<DataSample, bool> Capture(Action<TimeSpan> newAverage)
+        public static Func<T, bool> All<T>(params Func<T, bool>[] next)
         {
-            return data => 
-            {
-                Trace.WriteLine("Recorded new lap time of {0}".F(data.Telemetry.CamCar.LastTimeSpan), "INFO");
-                newAverage(data.Telemetry.CamCar.LastTimeSpan); 
+            return data => {
+                foreach (var n in next)
+                    if (!n(data))
+                        return false;
+
                 return true;
             };
         }

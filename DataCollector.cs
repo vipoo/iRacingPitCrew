@@ -76,14 +76,17 @@ namespace iRacingPitCrew
 
         public DataSample Data { get; private set; }
         public float AverageFuelPerLap { get; private set; }
-        public float AverageLapTime { get; private set; }
+        public TimeSpan AverageLapTimeSpan { get; private set; }
 
         void Process()
         {
-            var averageLapTime = AverageTime.Capture(avg => AverageLapTime = avg);
             var averageFuelPerLap = AverageFuelUsage.Capture(avg => AverageFuelPerLap = avg);
-            var onEachLap = OnEachLap.Capture( (d, t) => averageFuelPerLap(d, t) && averageLapTime(d,t));
-            var data = CaptureLatestData(onEachLap);
+            var onEachLap = OnEachLap.Capture(averageFuelPerLap);
+
+            var averageLapTime = AverageTime.Capture(avg => AverageLapTimeSpan = avg);
+            var onEachSession = OnEachSessionUpdate.Capture(averageLapTime);
+
+            var data = CaptureLatestData(EmitTo.All(onEachLap, onEachSession));
             var connected = ConnectedDataOnly(data);
 
             iracing.GetDataFeed().EmitTo(StopOnRequestCancel(connected));
@@ -91,7 +94,13 @@ namespace iRacingPitCrew
 
         Func<DataSample, bool> ConnectedDataOnly(Func<DataSample, bool> next)
         {
-            return data => data.IsConnected &&  next(data);
+            return data =>
+            {
+                if (data.IsConnected)
+                    return next(data);
+
+                return true;
+            };
         }
 
         Func<DataSample, bool> StopOnRequestCancel(Func<DataSample, bool> next)
