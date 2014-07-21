@@ -27,12 +27,27 @@ namespace iRacingPitCrew.DataCollection
 {
     public static class AverageTime
     {
+
         public static Func<DataSample, bool> Capture(Action<TimeSpan> newAverage)
         {
+            var last5Laps = new List<TimeSpan>();
+
             return data => 
             {
-                Trace.WriteLine("Recorded new lap time of {0}".F(data.Telemetry.CamCar.LastTimeSpan), "INFO");
-                newAverage(data.Telemetry.CamCar.LastTimeSpan); 
+                var lastTime = data.Telemetry.CamCar.LastTimeSpan;
+                if (lastTime.TotalSeconds <= 0)
+                    return true;
+
+                if (last5Laps.Count >= 5)
+                    last5Laps.RemoveAt(0);
+
+                last5Laps.Add(lastTime);
+
+                var average = last5Laps.Average(ts => ts.TotalSeconds).Seconds();
+
+                Trace.WriteLine("Lap time: {0}. Aerage: {1}".F(lastTime, average), "INFO");
+                
+                newAverage(lastTime); 
                 return true;
             };
         }

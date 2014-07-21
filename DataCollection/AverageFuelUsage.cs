@@ -59,7 +59,7 @@ namespace iRacingPitCrew.DataCollection
 
                         averageFuelUsage = last5LapFuelUsage.Average();
 
-                        Trace.WriteLine(string.Format("Finished lap with fuel burn of {0}. Avg: {1}", fuelUsed, averageFuelUsage), "INFO");
+                        Trace.WriteLine(string.Format("Finished lap with fuel burn of {0:0.00}. Avg: {1:0.00}", fuelUsed, averageFuelUsage), "INFO");
 
                         newAverage(averageFuelUsage);
                         break;

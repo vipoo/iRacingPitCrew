@@ -18,6 +18,8 @@
 
 using iRacingPitCrew.Support;
 using iRacingSDK.Support;
+using System;
+using System.Diagnostics;
 using System.Speech.Recognition;
 using System.Threading;
 
@@ -63,9 +65,16 @@ namespace iRacingPitCrew.PitCrewCommands
         Grammar grammarRaceLength;
         Timer timer;
         Grammar grammerFuelStrategy;
+        private TimeSpan raceDuration;
 
         void Command(RecognitionResult rr)
         {
+            if (dataCollector.AverageFuelPerLap <= 0 || dataCollector.AverageLapTimeSpan.TotalSeconds <= 0)
+            {
+                synthesizer.SpeakAsync("Do not have any fuel consumption or lap timing data.  You need to do 5 laps at least");
+                return;
+            }
+
             var session = dataCollector.Data.SessionData.SessionInfo.Sessions[dataCollector.Data.Telemetry.SessionNum];
             if( !session.IsRace )
             {
@@ -74,27 +83,46 @@ namespace iRacingPitCrew.PitCrewCommands
 
                 timer = new Timer(DisableRaceLengthGrammar, null, 15000, Timeout.Infinite);
             }
-
-            if (dataCollector.AverageFuelPerLap > 0)
-            {
-                synthesizer.SpeakAsync(string.Format("Your average fuel usage is {0:0.00} litres per lap.", dataCollector.AverageFuelPerLap));
-                synthesizer.SpeakAsync(string.Format("You will need a total of {0:0.00} litres", dataCollector.AverageFuelPerLap * raceLaps));
-            }
-
-            if( dataCollector.AverageLapTimeSpan.TotalSeconds > 0 )
-            {
-                var t = dataCollector.AverageLapTimeSpan;
-                
-                synthesizer.SpeakAsync("Your average lap time is {0:0}, {0:00.00}.".F((int)t.TotalMinutes, (float)t.Seconds + ((float)t.Milliseconds)/1000f));
-            }
         }
 
         void GetRaceLength(RecognitionResult rrr)
         {
-            raceLaps = (int)rrr.Semantics["amount"].Value;
+            DisableRaceLengthGrammar();
+
+            if (rrr.Text.EndsWith("laps"))
+            {
+                raceLaps = (int)rrr.Semantics["amount"].Value;
+                raceDuration = new TimeSpan();
+            }
+            else
+            {
+                raceDuration = TimeSpan.FromMinutes((int)rrr.Semantics["amount"].Value);
+                raceLaps = 0;
+            }
             synthesizer.SpeakAsync(string.Format("Your race length is {0}", rrr.Text));
 
-            DisableRaceLengthGrammar();
+            var t = dataCollector.AverageLapTimeSpan;
+
+            Trace.WriteLine("Your average lap time is {0:0}, {1:0.00}.".F((int)t.TotalMinutes, (float)t.Seconds + ((float)t.Milliseconds) / 1000f));
+            synthesizer.SpeakAsync("Your average lap time is {0:0}, {1:0.00}.".F((int)t.TotalMinutes, (float)t.Seconds + ((float)t.Milliseconds) / 1000f));
+
+            Trace.WriteLine("Your average fuel usage is {0:0.00} litres per lap.".F(dataCollector.AverageFuelPerLap));
+            synthesizer.SpeakAsync("Your average fuel usage is {0:0.00} litres per lap.".F(dataCollector.AverageFuelPerLap));
+
+            if (raceLaps == 0)
+            {
+                var estimateRaceLaps = (int)(raceDuration.TotalSeconds / t.TotalSeconds) + 1;
+                Trace.WriteLine("Estimating you will do {0} laps in {1} minutes".F(estimateRaceLaps, (int)raceDuration.TotalMinutes));
+                synthesizer.SpeakAsync("Estimating you will do {0} laps in {1} minutes".F(estimateRaceLaps, (int)raceDuration.TotalMinutes));
+
+                Trace.WriteLine("You will need a total of {0:0.00} litres".F(dataCollector.AverageFuelPerLap * estimateRaceLaps));
+                synthesizer.SpeakAsync("You will need a total of {0:0.00} litres".F(dataCollector.AverageFuelPerLap * estimateRaceLaps));
+            }
+            else
+            {
+                Trace.WriteLine("For a {0} lap race, you will need a total of {1:0.00} litres".F(raceLaps, dataCollector.AverageFuelPerLap * raceLaps));
+                synthesizer.SpeakAsync("For a {0} lap race, you will need a total of {1:0.00} litres".F(raceLaps, dataCollector.AverageFuelPerLap * raceLaps));
+            }
         }
     }
 }

@@ -39,7 +39,7 @@ namespace iRacingPitCrew.DataCollection
                 var telemetry = data.Telemetry;
                 var car = telemetry.CamCar;
 
-                if( telemetry.Lap == 0)
+                if( telemetry.Lap == 0 && car.TrackSurface != TrackLocation.NotInWorld)
                 {
                     if( lastLapNumber != 0)
                         Trace.WriteLine("Got a 0 lap");

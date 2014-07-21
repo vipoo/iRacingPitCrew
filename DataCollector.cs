@@ -17,6 +17,7 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 using iRacingSDK;
+using iRacingSDK.Support;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -80,16 +81,24 @@ namespace iRacingPitCrew
 
         void Process()
         {
-            var averageFuelPerLap = AverageFuelUsage.Capture(avg => AverageFuelPerLap = avg);
-            var onEachLap = OnEachLap.Capture(averageFuelPerLap);
+            try
+            {
+                var averageFuelPerLap = AverageFuelUsage.Capture(avg => AverageFuelPerLap = avg);
+                var onEachLap = OnEachLap.Capture(averageFuelPerLap);
 
-            var averageLapTime = AverageTime.Capture(avg => AverageLapTimeSpan = avg);
-            var onEachSession = OnEachSessionUpdate.Capture(averageLapTime);
+                var averageLapTime = AverageTime.Capture(avg => AverageLapTimeSpan = avg);
+                var onEachSession = OnEachSessionUpdate.Capture(averageLapTime);
 
-            var data = CaptureLatestData(EmitTo.All(onEachLap, onEachSession));
-            var connected = ConnectedDataOnly(data);
+                var data = CaptureLatestData(EmitTo.All(onEachLap, onEachSession));
+                var connected = ConnectedDataOnly(data);
 
-            iracing.GetDataFeed().EmitTo(StopOnRequestCancel(connected));
+                iracing.GetDataFeed().EmitTo(StopOnRequestCancel(connected));
+            }
+            catch(Exception e)
+            {
+                Trace.WriteLine("Non Recoverable error in DataCollector. {0}".F(e.Message), "INFO");
+                Trace.WriteLine(e.StackTrace, "DEBUG");
+            }
         }
 
         Func<DataSample, bool> ConnectedDataOnly(Func<DataSample, bool> next)
