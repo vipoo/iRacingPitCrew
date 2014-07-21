@@ -21,9 +21,9 @@ using System.Speech.Recognition;
 
 namespace iRacingPitCrew.PitCrewCommands
 {
-    public class SetFuel : PitCrewCommand
+    public class SetFuelCommand : PitCrewCommand
     {
-        public SetFuel(SpeechRecognitionEngine recognizer, DataCollector dataCollector, System.Speech.Synthesis.SpeechSynthesizer synthesizer)
+        public SetFuelCommand(SpeechRecognitionEngine recognizer, DataCollector dataCollector, System.Speech.Synthesis.SpeechSynthesizer synthesizer)
             : base(recognizer, dataCollector, synthesizer)
         {
         }

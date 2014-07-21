@@ -43,8 +43,8 @@ namespace iRacingPitCrew
             synthesizer.Volume = 100;
             synthesizer.Rate = -2;
 
-            pitCrewCommands.Add(new FuelStrategy(recognizer, dataCollector, synthesizer));
-            pitCrewCommands.Add(new SetFuel(recognizer, dataCollector, synthesizer));
+            pitCrewCommands.Add(new FuelStrategyCommand(recognizer, dataCollector, synthesizer));
+            pitCrewCommands.Add(new SetFuelCommand(recognizer, dataCollector, synthesizer));
         }
 
         void dataCollector_Disconnected()
@@ -54,7 +54,7 @@ namespace iRacingPitCrew
 
         void dataCollector_Connected()
         {
-            synthesizer.SpeakAsync("Connected to I Racing, your pit crew is standing by for your commands.");
+            synthesizer.SpeakAsync("Connected to I Racing, your pit crew is standing by.");
         }
 
         public override void Start()

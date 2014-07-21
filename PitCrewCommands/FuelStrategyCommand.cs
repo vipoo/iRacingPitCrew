@@ -25,9 +25,9 @@ using System.Threading;
 
 namespace iRacingPitCrew.PitCrewCommands
 {
-    public class FuelStrategy : PitCrewCommand
+    public class FuelStrategyCommand : PitCrewCommand
     {
-        public FuelStrategy(SpeechRecognitionEngine recognizer, DataCollector dataCollector, System.Speech.Synthesis.SpeechSynthesizer synthesizer)
+        public FuelStrategyCommand(SpeechRecognitionEngine recognizer, DataCollector dataCollector, System.Speech.Synthesis.SpeechSynthesizer synthesizer)
             : base(recognizer, dataCollector, synthesizer)
         {
         }
