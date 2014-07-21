@@ -61,6 +61,8 @@
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
     <Compile Include="PitCrew.cs" />
+    <Compile Include="PitCrewCommands\FuelStrategyCalculator.cs" />
+    <Compile Include="PitCrewCommands\FuelStrategyOption.cs" />
     <Compile Include="PitCrewCommands\SetFuelCommand.cs" />
     <Compile Include="PitCrewCommands\PitCrewCommand.cs" />
     <Compile Include="PitCrewCommands\FuelStrategyCommand.cs" />
