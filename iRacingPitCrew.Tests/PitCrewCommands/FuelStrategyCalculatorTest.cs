@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
-
+using iRacingSDK.Support;
 using iRacingPitCrew.PitCrewCommands;
 using NUnit.Framework;
 
@@ -26,15 +26,43 @@ namespace iRacingPitCrew.Tests.PitCrewCommands
     public class FuelStrategyCalculatorTest
     {
         [Test]
-        public void ShouldCalculatorTotalFuel()
+        public void ShouldCalculateTotalFuelRequiredFor20Laps()
         {
-            var c = new FuelStrategyCalculator();
+            var r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 1.9d);
+            Assert.That(r.TotalFuelRequired, Is.EqualTo(45)); //( 20+1)*1.9 => 39.9 => 40 => then to nearest 5
 
-            var r = c.Calculator(20, 1.9d);
+            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.4d);
+            Assert.That(r.TotalFuelRequired, Is.EqualTo(55)); //( 20+1)*2.4 => 50.4 => 51 then to nearest 5
 
-            Assert.That(r.TotalFuelRequired, Is.EqualTo(40)); //( 20+1)*1.9 =>39 then to nearest 5
+            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.380952380952381d);
+            Assert.That(r.TotalFuelRequired, Is.EqualTo(55)); //( 20+1)*2.38...  => 50.0 then to nearest 5
+
+            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.333333333333333);
+            Assert.That(r.TotalFuelRequired, Is.EqualTo(50));
+
+            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.333333333333334);
+            Assert.That(r.TotalFuelRequired, Is.EqualTo(55));
+
+            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.380952380952381d);
+            Assert.That(r.TotalFuelRequired, Is.EqualTo(55));
         }
 
+        [Test]
+        public void ShouldCalculateEstimateNumberOfRaceLapsFor20Minutes()
+        {
+            var r = FuelStrategy.Calculate(raceDuration: 20.Minutes(), averageFuelBurnPerLap: 0f, averageLapTime: 60.Seconds());
+            Assert.That(r.EstimatedNumberOfRaceLaps, Is.EqualTo(21));
 
+            r = FuelStrategy.Calculate(raceDuration: 20.Minutes(), averageFuelBurnPerLap: 0f, averageLapTime: 55.Seconds());
+            Assert.That(r.EstimatedNumberOfRaceLaps, Is.EqualTo(22));
+        }
+
+        [Test]
+        public void ShouldCalculateTotalFuelRequiredFor20Minutes()
+        {
+            var r = FuelStrategy.Calculate(raceDuration: 20.Minutes(), averageFuelBurnPerLap: 1.9f, averageLapTime: 60.Seconds());
+
+            Assert.That(r.TotalFuelRequired, Is.EqualTo(45)); //( 21+1)*1.9 =>39 then to nearest 5
+        }
     }
 }

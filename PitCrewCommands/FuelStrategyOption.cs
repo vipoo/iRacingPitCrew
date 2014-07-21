@@ -17,6 +17,7 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 
+using System;
 namespace iRacingPitCrew.PitCrewCommands
 {
     public struct FuelStrategyOption
@@ -30,6 +31,24 @@ namespace iRacingPitCrew.PitCrewCommands
             NumberOfRaceLaps = numberOfRaceLaps;
             AverageFuelBurnPerLap = averageFuelBurnPerLap;
             TotalFuelRequired = totalFuelRequired;
+        }
+    }
+
+    public struct RaceDurationFuelStrategyOption
+    {
+        public readonly TimeSpan RaceDuration;
+        public readonly double AverageFuelBurnPerLap;
+        public readonly TimeSpan AverageLapTime;
+        public readonly int EstimatedNumberOfRaceLaps;
+        public readonly int TotalFuelRequired;
+
+        public RaceDurationFuelStrategyOption(System.TimeSpan raceDuration, float averageFuelBurnPerLap, System.TimeSpan averageLapTime, int estimatedNumberOfRaceLaps, int totalFuelRequired)
+        {
+            this.RaceDuration = raceDuration;
+            this.AverageFuelBurnPerLap = averageFuelBurnPerLap;
+            this.AverageLapTime = averageLapTime;
+            this.EstimatedNumberOfRaceLaps = estimatedNumberOfRaceLaps;
+            this.TotalFuelRequired = totalFuelRequired;
         }
     }
 }

@@ -16,18 +16,34 @@
 // You should have received a copy of the GNU General Public License
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
-
+using iRacingSDK.Support;
+using System;
+using System.Diagnostics;
 namespace iRacingPitCrew.PitCrewCommands
 {
-    public class FuelStrategyCalculator
+    public static class FuelStrategy
     {
-        public FuelStrategyOption Calculator(int numberOfRaceLaps, double averageFuelBurnPerLap)
+        public static FuelStrategyOption Calculate(int numberOfRaceLaps, double averageFuelBurnPerLap)
         {
-            var totalFuelRequired = (int)((numberOfRaceLaps+1) * averageFuelBurnPerLap);
-
-            totalFuelRequired = ((totalFuelRequired / 5)+1) * 5;
+            var totalFuelRequired = GetTotalFuelRequired(numberOfRaceLaps, averageFuelBurnPerLap);
 
             return new FuelStrategyOption(numberOfRaceLaps, averageFuelBurnPerLap, totalFuelRequired);
+        }
+
+        public static RaceDurationFuelStrategyOption Calculate(TimeSpan raceDuration, float averageFuelBurnPerLap, TimeSpan averageLapTime)
+        {
+            var estimatedNumberOfRaceLaps =(int)( (raceDuration.TotalSeconds / averageLapTime.TotalSeconds) + 1);
+
+            var totalFuelRequired = GetTotalFuelRequired(estimatedNumberOfRaceLaps, averageFuelBurnPerLap);
+
+            return new RaceDurationFuelStrategyOption(raceDuration, averageFuelBurnPerLap, averageLapTime, estimatedNumberOfRaceLaps, totalFuelRequired);
+        }
+
+        static int GetTotalFuelRequired(int numberOfRaceLaps, double averageFuelBurnPerLap)
+        {
+            var totalFuelRequired = (int)Math.Ceiling((numberOfRaceLaps + 1) * averageFuelBurnPerLap);
+
+            return totalFuelRequired = ((totalFuelRequired / 5) + 1) * 5;
         }
     }
 }

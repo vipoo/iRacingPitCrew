@@ -111,17 +111,20 @@ namespace iRacingPitCrew.PitCrewCommands
 
             if (raceLaps == 0)
             {
-                var estimateRaceLaps = (int)(raceDuration.TotalSeconds / t.TotalSeconds) + 1;
-                Trace.WriteLine("Estimating you will do {0} laps in {1} minutes".F(estimateRaceLaps, (int)raceDuration.TotalMinutes));
-                synthesizer.SpeakAsync("Estimating you will do {0} laps in {1} minutes".F(estimateRaceLaps, (int)raceDuration.TotalMinutes));
+                var r = FuelStrategy.Calculate(raceDuration, dataCollector.AverageFuelPerLap, dataCollector.AverageLapTimeSpan);
 
-                Trace.WriteLine("You will need a total of {0:0.00} litres".F(dataCollector.AverageFuelPerLap * estimateRaceLaps));
-                synthesizer.SpeakAsync("You will need a total of {0:0.00} litres".F(dataCollector.AverageFuelPerLap * estimateRaceLaps));
+                Trace.WriteLine("Estimating you will do {0} laps in {1} minutes".F(r.EstimatedNumberOfRaceLaps, r.RaceDuration.TotalMinutes));
+                synthesizer.SpeakAsync("Estimating you will do {0} laps in {1} minutes".F(r.EstimatedNumberOfRaceLaps, (int)r.RaceDuration.TotalMinutes));
+
+                Trace.WriteLine("For a {0} minute race, you will need a total of {1} litres".F((int)r.RaceDuration.TotalMinutes, r.TotalFuelRequired));
+                synthesizer.SpeakAsync("For a {0} minute race, you will need a total of {1} litres".F((int)r.RaceDuration.TotalMinutes, r.TotalFuelRequired));
             }
             else
             {
-                Trace.WriteLine("For a {0} lap race, you will need a total of {1:0.00} litres".F(raceLaps, dataCollector.AverageFuelPerLap * raceLaps));
-                synthesizer.SpeakAsync("For a {0} lap race, you will need a total of {1:0.00} litres".F(raceLaps, dataCollector.AverageFuelPerLap * raceLaps));
+                var r = FuelStrategy.Calculate(raceLaps, dataCollector.AverageFuelPerLap);
+
+                Trace.WriteLine("For a {0} lap race, you will need a total of {1} litres".F(raceLaps, r.TotalFuelRequired));
+                synthesizer.SpeakAsync("For a {0} lap race, you will need a total of {1} litres".F(raceLaps, r.TotalFuelRequired));
             }
         }
     }
