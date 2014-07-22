@@ -17,7 +17,9 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 using iRacingSDK;
+using iRacingSDK.Support;
 using System;
+using System.Diagnostics;
 
 namespace iRacingPitCrew.DataCollection
 {
@@ -33,6 +35,7 @@ namespace iRacingPitCrew.DataCollection
                     return true;
 
                 lastSessionInfoUpdate = data.SessionData.InfoUpdate;
+
                 return next(data);
             };
         }

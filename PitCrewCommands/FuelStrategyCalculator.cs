@@ -23,11 +23,13 @@ namespace iRacingPitCrew.PitCrewCommands
 {
     public static class FuelStrategy
     {
-        public static FuelStrategyOption Calculate(int numberOfRaceLaps, double averageFuelBurnPerLap)
+        public static FuelStrategyOption Calculate(int numberOfRaceLaps, double averageFuelBurnPerLap, double fuelTankCapacity)
         {
             var totalFuelRequired = GetTotalFuelRequired(numberOfRaceLaps, averageFuelBurnPerLap);
 
-            return new FuelStrategyOption(numberOfRaceLaps, averageFuelBurnPerLap, totalFuelRequired);
+            var numberOfPitStops =(int)( totalFuelRequired / fuelTankCapacity);
+
+            return new FuelStrategyOption(numberOfRaceLaps, averageFuelBurnPerLap, fuelTankCapacity, totalFuelRequired, numberOfPitStops);
         }
 
         public static RaceDurationFuelStrategyOption Calculate(TimeSpan raceDuration, float averageFuelBurnPerLap, TimeSpan averageLapTime)

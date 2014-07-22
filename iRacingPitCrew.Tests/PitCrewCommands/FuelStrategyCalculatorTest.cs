@@ -28,23 +28,31 @@ namespace iRacingPitCrew.Tests.PitCrewCommands
         [Test]
         public void ShouldCalculateTotalFuelRequiredFor20Laps()
         {
-            var r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 1.9d);
+            var r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 1.9d, fuelTankCapacity: 0);
             Assert.That(r.TotalFuelRequired, Is.EqualTo(45)); //( 20+1)*1.9 => 39.9 => 40 => then to nearest 5
 
-            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.4d);
+            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.4d, fuelTankCapacity: 0);
             Assert.That(r.TotalFuelRequired, Is.EqualTo(55)); //( 20+1)*2.4 => 50.4 => 51 then to nearest 5
 
-            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.380952380952381d);
+            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.380952380952381d, fuelTankCapacity: 0);
             Assert.That(r.TotalFuelRequired, Is.EqualTo(55)); //( 20+1)*2.38...  => 50.0 then to nearest 5
 
-            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.333333333333333);
+            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.333333333333333, fuelTankCapacity: 0);
             Assert.That(r.TotalFuelRequired, Is.EqualTo(50));
 
-            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.333333333333334);
+            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.333333333333334, fuelTankCapacity: 0);
             Assert.That(r.TotalFuelRequired, Is.EqualTo(55));
 
-            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.380952380952381d);
+            r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.380952380952381d, fuelTankCapacity: 0);
             Assert.That(r.TotalFuelRequired, Is.EqualTo(55));
+        }
+
+        [Test]
+        public void ShouldCalculateNumerOfPitsStopsForA20LapRace()
+        {
+            var r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2d, fuelTankCapacity: 30d);
+            Assert.That(r.NumberOfPitStops, Is.EqualTo(1)); 
+
         }
 
         [Test]

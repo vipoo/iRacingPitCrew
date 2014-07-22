@@ -24,13 +24,17 @@ namespace iRacingPitCrew.PitCrewCommands
     {
         public readonly int NumberOfRaceLaps;
         public readonly double AverageFuelBurnPerLap;
+        public readonly double FuelTankCapacity;
         public readonly int TotalFuelRequired;
+        public readonly int NumberOfPitStops;
 
-        public FuelStrategyOption(int numberOfRaceLaps, double averageFuelBurnPerLap, int totalFuelRequired)
+        public FuelStrategyOption(int numberOfRaceLaps, double averageFuelBurnPerLap, double fuelTankCapacity, int totalFuelRequired, int numberOfPitStops)
         {
             NumberOfRaceLaps = numberOfRaceLaps;
             AverageFuelBurnPerLap = averageFuelBurnPerLap;
             TotalFuelRequired = totalFuelRequired;
+            FuelTankCapacity = fuelTankCapacity;
+            NumberOfPitStops = numberOfPitStops;
         }
     }
 
