@@ -16,8 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
+using iRacingPitCrew.Properties;
 using iRacingPitCrew.Support;
 using System;
+using System.Linq;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -28,6 +30,7 @@ namespace iRacingPitCrew
     public partial class Main : Form
     {
         PitCrew pitCrew;
+        private bool isChanging;
 
         public Main()
         {
@@ -46,6 +49,25 @@ namespace iRacingPitCrew
 
             dc.Connected += dc_Connected;
             dc.Disconnected += dc_Disconnected;
+            dc.NewSessionData += dc_NewSessionData;
+        }
+
+        void dc_NewSessionData(iRacingSDK.DataSample data)
+        {
+            var carPath = data.Telemetry.CamCar.CarPath;
+            var configurations = Settings.Default.CarConfigurations;
+            
+            if( configurations == null)
+                configurations = Settings.Default.CarConfigurations = new CarConfigurations();
+            
+            if (!configurations.Any(c => c.CarName == carPath))
+            {
+                configurations.Add(new CarConfiguration { CarName = carPath });
+                Settings.Default.Save();
+
+                carListCombo.Items.Add(carPath);
+                carListCombo.SelectedText = carPath;
+            }
         }
 
         void dc_Disconnected()
@@ -61,6 +83,12 @@ namespace iRacingPitCrew
         void Main_Load(object sender, EventArgs e)
         {
             pitCrew.Start();
+
+            var configurations = Settings.Default.CarConfigurations;
+            foreach (var c in configurations)
+                carListCombo.Items.Add(c.CarName);
+
+            carListCombo.SelectedItem = Settings.Default.CurrentCarName;
         }
 
         void Main_Resize(object sender, EventArgs e)
@@ -104,6 +132,66 @@ namespace iRacingPitCrew
         private void Main_FormClosed(object sender, FormClosedEventArgs e)
         {
             pitCrew.Stop();
+        }
+
+        CarConfiguration SelectedCarConfiguration
+        {
+            get
+            {
+                var configurations = Settings.Default.CarConfigurations;
+                return configurations.FirstOrDefault(c => c.CarName == carListCombo.SelectedItem.ToString());
+            }
+        }
+
+        void carListCombo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var config = SelectedCarConfiguration;
+            Settings.Default.CurrentCarName = config.CarName;
+            
+            tankLimitTextBox.Text = config.TankSize.ToString();
+            raceDurationTextBox.Text = config.RaceLength.ToString();
+
+            isChanging = true;
+            if( config.RaceDuationType == null)
+                raceDurationInMinutesButton.Checked = raceDurationInLapsButton.Checked = false;
+            else
+            {
+                raceDurationInLapsButton.Checked = config.RaceDuationType.Value == RaceType.Laps;
+                raceDurationInMinutesButton.Checked = config.RaceDuationType.Value == RaceType.Minutes;
+            }
+            isChanging = false;
+
+            Settings.Default.Save();
+        }
+
+        void SaveTextValue( TextBox textBox, Action<int?> assign)
+        {
+            int result;
+            if (int.TryParse(textBox.Text, out result))
+                assign(result);
+            else
+                assign(null);
+
+            Settings.Default.Save();
+        }
+
+        void tankLimitTextBox_TextChanged(object sender, EventArgs e)
+        {
+            SaveTextValue(tankLimitTextBox, r => SelectedCarConfiguration.TankSize = r);
+        }
+
+        void raceDurationTextBox_TextChanged(object sender, EventArgs e)
+        {
+            SaveTextValue(raceDurationTextBox, r => SelectedCarConfiguration.RaceLength = r);
+        }
+
+        void raceDurationTypeButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (isChanging)
+                return;
+
+            SelectedCarConfiguration.RaceDuationType = raceDurationInMinutesButton.Checked ? RaceType.Minutes : RaceType.Laps;
+            Settings.Default.Save();
         }
     }
 }

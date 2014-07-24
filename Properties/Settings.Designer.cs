@@ -22,5 +22,28 @@ namespace iRacingPitCrew.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::iRacingPitCrew.CarConfigurations CarConfigurations {
+            get {
+                return ((global::iRacingPitCrew.CarConfigurations)(this["CarConfigurations"]));
+            }
+            set {
+                this["CarConfigurations"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CurrentCarName {
+            get {
+                return ((string)(this["CurrentCarName"]));
+            }
+            set {
+                this["CurrentCarName"] = value;
+            }
+        }
     }
 }

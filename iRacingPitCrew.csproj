@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Properties\CarConfiguration.cs" />
     <Compile Include="DataCollection\LapTransition.cs" />
     <Compile Include="DataCollection\EmitToAll.cs" />
     <Compile Include="DataCollection\OnEachSessionUpdate.cs" />
@@ -87,6 +88,7 @@
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </None>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -37,6 +37,15 @@
             this.toolStripMenuItem_Exit = new System.Windows.Forms.ToolStripMenuItem();
             this.iRacingConnectionStatus = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
+            this.carListCombo = new System.Windows.Forms.ComboBox();
+            this.raceDurationTextBox = new System.Windows.Forms.TextBox();
+            this.raceDurationInMinutesButton = new System.Windows.Forms.RadioButton();
+            this.raceDurationInLapsButton = new System.Windows.Forms.RadioButton();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.tankLimitTextBox = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -101,11 +110,106 @@
             this.label3.TabIndex = 2;
             this.label3.Text = "Status:";
             // 
+            // carListCombo
+            // 
+            this.carListCombo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.carListCombo.FormattingEnabled = true;
+            this.carListCombo.Location = new System.Drawing.Point(29, 147);
+            this.carListCombo.Name = "carListCombo";
+            this.carListCombo.Size = new System.Drawing.Size(193, 21);
+            this.carListCombo.TabIndex = 2;
+            this.carListCombo.SelectedIndexChanged += new System.EventHandler(this.carListCombo_SelectedIndexChanged);
+            // 
+            // raceDurationTextBox
+            // 
+            this.raceDurationTextBox.Location = new System.Drawing.Point(374, 147);
+            this.raceDurationTextBox.Name = "raceDurationTextBox";
+            this.raceDurationTextBox.Size = new System.Drawing.Size(76, 20);
+            this.raceDurationTextBox.TabIndex = 7;
+            this.raceDurationTextBox.TextChanged += new System.EventHandler(this.raceDurationTextBox_TextChanged);
+            // 
+            // raceDurationInMinutesButton
+            // 
+            this.raceDurationInMinutesButton.AutoSize = true;
+            this.raceDurationInMinutesButton.Location = new System.Drawing.Point(456, 148);
+            this.raceDurationInMinutesButton.Name = "raceDurationInMinutesButton";
+            this.raceDurationInMinutesButton.Size = new System.Drawing.Size(62, 17);
+            this.raceDurationInMinutesButton.TabIndex = 8;
+            this.raceDurationInMinutesButton.TabStop = true;
+            this.raceDurationInMinutesButton.Text = "Minutes";
+            this.raceDurationInMinutesButton.UseVisualStyleBackColor = true;
+            this.raceDurationInMinutesButton.CheckedChanged += new System.EventHandler(this.raceDurationTypeButton_CheckedChanged);
+            // 
+            // raceDurationInLapsButton
+            // 
+            this.raceDurationInLapsButton.AutoSize = true;
+            this.raceDurationInLapsButton.Location = new System.Drawing.Point(524, 148);
+            this.raceDurationInLapsButton.Name = "raceDurationInLapsButton";
+            this.raceDurationInLapsButton.Size = new System.Drawing.Size(48, 17);
+            this.raceDurationInLapsButton.TabIndex = 9;
+            this.raceDurationInLapsButton.TabStop = true;
+            this.raceDurationInLapsButton.Text = "Laps";
+            this.raceDurationInLapsButton.UseVisualStyleBackColor = true;
+            this.raceDurationInLapsButton.CheckedChanged += new System.EventHandler(this.raceDurationTypeButton_CheckedChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(26, 131);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(26, 13);
+            this.label2.TabIndex = 1;
+            this.label2.Text = "Car:";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(371, 130);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(79, 13);
+            this.label4.TabIndex = 6;
+            this.label4.Text = "Race Duration:";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(239, 131);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(59, 13);
+            this.label5.TabIndex = 3;
+            this.label5.Text = "Tank Limit:";
+            // 
+            // tankLimitTextBox
+            // 
+            this.tankLimitTextBox.Location = new System.Drawing.Point(242, 148);
+            this.tankLimitTextBox.Name = "tankLimitTextBox";
+            this.tankLimitTextBox.Size = new System.Drawing.Size(76, 20);
+            this.tankLimitTextBox.TabIndex = 4;
+            this.tankLimitTextBox.TextChanged += new System.EventHandler(this.tankLimitTextBox_TextChanged);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(324, 150);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(28, 13);
+            this.label6.TabIndex = 5;
+            this.label6.Text = "litres";
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(753, 239);
+            this.ClientSize = new System.Drawing.Size(811, 364);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.tankLimitTextBox);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.raceDurationInLapsButton);
+            this.Controls.Add(this.raceDurationInMinutesButton);
+            this.Controls.Add(this.raceDurationTextBox);
+            this.Controls.Add(this.carListCombo);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.iRacingConnectionStatus);
             this.Controls.Add(this.label1);
@@ -129,6 +233,15 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_Exit;
         private System.Windows.Forms.Label iRacingConnectionStatus;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.ComboBox carListCombo;
+        private System.Windows.Forms.TextBox raceDurationTextBox;
+        private System.Windows.Forms.RadioButton raceDurationInMinutesButton;
+        private System.Windows.Forms.RadioButton raceDurationInLapsButton;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox tankLimitTextBox;
+        private System.Windows.Forms.Label label6;
     }
 }
 

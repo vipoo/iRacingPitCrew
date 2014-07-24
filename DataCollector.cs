@@ -45,6 +45,12 @@ namespace iRacingPitCrew
             remove { iracing.Disconnected -= value; }
         }
 
+        public event Action<DataSample> NewSessionData
+        {
+            add { iracing.NewSessionData += value; }
+            remove { iracing.NewSessionData -= value; }
+        }
+
         public bool IsConnectedToiRacing
         {
             get
