@@ -22,17 +22,29 @@ using System.Speech.Recognition;
 
 namespace iRacingPitCrew.Support
 {
-    public static class SpeechRecognitionEngineExtension
+    public static class Recognition
     {
-        public static Grammar LoadGrammar(this SpeechRecognitionEngine self, Action<RecognitionResult> speechReconized, string phrase)
+        public static bool ProcessCommand(RecognitionResult rr)
         {
-            return self.LoadGrammar(r => true, speechReconized, phrase);
+            Trace.WriteLine("---------------------", "DEBUG");
+            foreach (var alt in rr.Alternates)
+                Trace.WriteLine(string.Format("{0:00.00}%, {1}", alt.Confidence * 100f, alt.Text), "DEBUG");
+
+            if (rr.Confidence < 0.9)
+            {
+                Trace.WriteLine("Ignoring poor match", "INFO");
+                Trace.WriteLine("---------------------", "DEBUG");
+                return false;
+            }
+
+            Trace.WriteLine("---------------------", "DEBUG");
+            return true;
         }
 
-        public static Grammar LoadGrammar(this SpeechRecognitionEngine self, Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, string phrase)
+        public static Grammar LoadGrammar(this SpeechRecognitionEngine self, Action<RecognitionResult> speechReconized, string phrase)
         {
             var g = new Grammar(new GrammarBuilder(phrase));
-            g.SpeechRecognized += (s, e) => SpeechReconized(self, reconizerGuard, speechReconized, e);
+            g.SpeechRecognized += (s, e) => SpeechReconized(self, speechReconized, e);
 
             self.LoadGrammar(g);
 
@@ -41,27 +53,22 @@ namespace iRacingPitCrew.Support
 
         public static Grammar LoadGrammar(this SpeechRecognitionEngine self, Action<RecognitionResult> speechReconized, Action<GrammarBuilder> builder)
         {
-            return self.LoadGrammar(r => true, speechReconized, builder);
-        }
-
-        public static Grammar LoadGrammar(this SpeechRecognitionEngine self, Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, Action<GrammarBuilder> builder)
-        {
             var gb = new GrammarBuilder();
             builder(gb);
 
             var g = new Grammar(gb);
-            g.SpeechRecognized += (s, e) => SpeechReconized(self, reconizerGuard, speechReconized, e);
+            g.SpeechRecognized += (s, e) => SpeechReconized(self, speechReconized, e);
 
             self.LoadGrammar(g);
 
             return g;
         }
 
-        static void SpeechReconized(SpeechRecognitionEngine self, Func<RecognitionResult, bool> reconizerGuard, Action<RecognitionResult> speechReconized, SpeechRecognizedEventArgs e)
+        static void SpeechReconized(SpeechRecognitionEngine self, Action<RecognitionResult> speechReconized, SpeechRecognizedEventArgs e)
         {
             try
             {
-                if( reconizerGuard(e.Result))
+                if( ProcessCommand(e.Result))
                     speechReconized(e.Result);
             }
             catch(Exception ex)

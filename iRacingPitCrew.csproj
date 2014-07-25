@@ -46,6 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PitCrewCommands\DebuggingCommand.cs" />
+    <Compile Include="PitCrewCommands\HelpCommand.cs" />
+    <Compile Include="PitCrewCommands\RaceStatusCommand.cs" />
+    <Compile Include="PitCrewCommands\TyreOnCommand.cs" />
+    <Compile Include="PitCrewCommands\TyreOffCommand.cs" />
+    <Compile Include="PitCrewCommands\ResetCommand.cs" />
     <Compile Include="Properties\CarConfiguration.cs" />
     <Compile Include="DataCollection\LapTransition.cs" />
     <Compile Include="DataCollection\EmitToAll.cs" />

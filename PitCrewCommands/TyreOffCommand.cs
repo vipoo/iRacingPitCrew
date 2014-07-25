@@ -23,43 +23,18 @@ using System.Speech.Synthesis;
 
 namespace iRacingPitCrew.PitCrewCommands
 {
-    public class SetFuelCommand : PitCrewCommand
+    public class TyreOffCommand : PitCrewCommand
     {
-        public SetFuelCommand(SpeechRecognitionEngine recognizer, SpeechSynthesizer synthesizer, Action recognized)
+        public TyreOffCommand(SpeechRecognitionEngine recognizer, SpeechSynthesizer synthesizer, Action recognized)
             : base(recognizer, synthesizer, recognized)
         {
-            SetGrammar(g =>
-            {
-                g.Append("set fuel");
-                g.Append(new SemanticResultKey("fuel_amount", FuelNumbers()));
-                g.Append(new Choices("litres", "liters", "litre", "liter"));
-            });
-        }
-
-        Choices FuelNumbers()
-        {
-            var digits = new Choices();
-
-            for (int i = 5; i < 201; i += 5)
-                digits.Add(new SemanticResultValue(i.ToString(), i));
-
-            return digits;
+            SetGrammar(new Choices("no tyre change", "tyre change off"));
         }
 
         protected override void Command(RecognitionResult rr)
         {
-            var a = (int)rr.Semantics["fuel_amount"].Value;
-
-            if (a == 0)
-            {
-                iRacing.PitCommand.SetFuel(1);
-                SpeakAsync(string.Format("No fuel at your next pit stop.", a));
-            }
-            else
-            {
-                iRacing.PitCommand.SetFuel((int)a);
-                SpeakAsync(string.Format("You will get {0} litres of fuel at next pit stop.", a));
-            }
+            SpeakAsync("Will not be changing tyres at next pit stop.");
+            iRacing.PitCommand.ClearTireChange();
         }
     }
 }
