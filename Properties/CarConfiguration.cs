@@ -37,7 +37,9 @@ namespace iRacingPitCrew
     {
         public string CarName { get; set; }
         public int? TankSize { get; set; }
-        public RaceDuration RaceDuration { get; set; }
+        public int RaceDuration_Length { get; set; }
+        public RaceType RaceDuration_Type { get; set; }
+        public bool RaceDuration_IsEmpty { get; set; }
         public float? FuelBurn { get; set; }
     }
 

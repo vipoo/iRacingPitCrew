@@ -155,16 +155,16 @@ namespace iRacingPitCrew
             tankLimitTextBox.Text = config.TankSize.ToString();
 
             isChanging = true;
-            if (config.RaceDuration.IsEmpty)
+            if (config.RaceDuration_IsEmpty)
             {
                 raceDurationTextBox.Text = "";
                 raceDurationInMinutesButton.Checked = raceDurationInLapsButton.Checked = false;
             }
             else
             {
-                raceDurationTextBox.Text = config.RaceDuration.Length.ToString();
-                raceDurationInLapsButton.Checked = config.RaceDuration.Type == RaceType.Laps;
-                raceDurationInMinutesButton.Checked = config.RaceDuration.Type == RaceType.Minutes;
+                raceDurationTextBox.Text = config.RaceDuration_Length.ToString();
+                raceDurationInLapsButton.Checked = config.RaceDuration_Type == RaceType.Laps;
+                raceDurationInMinutesButton.Checked = config.RaceDuration_Type == RaceType.Minutes;
             }
             isChanging = false;
 
@@ -190,7 +190,10 @@ namespace iRacingPitCrew
         void raceDurationTextBox_TextChanged(object sender, EventArgs e)
         {
             SaveTextValue(raceDurationTextBox, r => {
-                SelectedCarConfiguration.RaceDuration = r== null ? new RaceDuration() : SelectedCarConfiguration.RaceDuration.ForLength((int)r);
+
+                SelectedCarConfiguration.RaceDuration_IsEmpty = r == null;
+                if (r != null)
+                    SelectedCarConfiguration.RaceDuration_Length = (int)r; 
             });
         }
 
@@ -200,7 +203,8 @@ namespace iRacingPitCrew
                 return;
 
             var newType = raceDurationInMinutesButton.Checked ? RaceType.Minutes : RaceType.Laps;
-            SelectedCarConfiguration.RaceDuration = SelectedCarConfiguration.RaceDuration.ForType(newType);
+            SelectedCarConfiguration.RaceDuration_Type = newType;
+            SelectedCarConfiguration.RaceDuration_IsEmpty = false;
             Settings.Default.Save();
         }
     }
