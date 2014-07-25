@@ -2,7 +2,7 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="iRacingPitCrew.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="CarConfigurations" Type="iRacingPitCrew.CarConfigurations" Scope="User">
+    <Setting Name="CarConfigs" Type="iRacingPitCrew.CarConfigurations" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="CurrentCarName" Type="System.String" Scope="User">

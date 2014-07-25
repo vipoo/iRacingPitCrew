@@ -8,13 +8,37 @@ namespace iRacingPitCrew
 {
     public enum RaceType { Minutes, Laps};
 
+    public struct RaceDuration
+    {
+        public readonly int Length;
+        public readonly RaceType Type;
+        public bool IsEmpty { get { return !isNotEmpty; } }
+        readonly bool isNotEmpty;
+
+        public RaceDuration(int length, RaceType type)
+        {
+            Length = length;
+            Type = type;
+            isNotEmpty = true;
+        }
+
+        public RaceDuration ForType(RaceType type)
+        {
+            return new RaceDuration(Length, type);
+        }
+
+        public RaceDuration ForLength(int length)
+        {
+            return new RaceDuration(length, Type);
+        }
+    }
+
     public class CarConfiguration
     {
         public string CarName { get; set; }
         public int? TankSize { get; set; }
-        public int? RaceLength { get; set; }
+        public RaceDuration RaceDuration { get; set; }
         public float? FuelBurn { get; set; }
-        public RaceType? RaceDuationType { get; set; }
     }
 
     public class CarConfigurations : List<CarConfiguration>

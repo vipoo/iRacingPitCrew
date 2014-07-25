@@ -30,7 +30,7 @@ namespace iRacingPitCrew
     public partial class Main : Form
     {
         PitCrew pitCrew;
-        private bool isChanging;
+        bool isChanging;
 
         public Main()
         {
@@ -55,11 +55,8 @@ namespace iRacingPitCrew
         void dc_NewSessionData(iRacingSDK.DataSample data)
         {
             var carPath = data.Telemetry.CamCar.CarPath;
-            var configurations = Settings.Default.CarConfigurations;
-            
-            if( configurations == null)
-                configurations = Settings.Default.CarConfigurations = new CarConfigurations();
-            
+            var configurations = Settings.Default.CarConfigs;
+                        
             if (!configurations.Any(c => c.CarName == carPath))
             {
                 configurations.Add(new CarConfiguration { CarName = carPath });
@@ -84,7 +81,14 @@ namespace iRacingPitCrew
         {
             pitCrew.Start();
 
-            var configurations = Settings.Default.CarConfigurations;
+            var configurations = Settings.Default.CarConfigs;
+
+            if (configurations == null)
+            {
+                configurations = Settings.Default.CarConfigs = new CarConfigurations();
+                Settings.Default.Save();
+            }
+
             foreach (var c in configurations)
                 carListCombo.Items.Add(c.CarName);
 
@@ -138,7 +142,7 @@ namespace iRacingPitCrew
         {
             get
             {
-                var configurations = Settings.Default.CarConfigurations;
+                var configurations = Settings.Default.CarConfigs;
                 return configurations.FirstOrDefault(c => c.CarName == carListCombo.SelectedItem.ToString());
             }
         }
@@ -149,15 +153,18 @@ namespace iRacingPitCrew
             Settings.Default.CurrentCarName = config.CarName;
             
             tankLimitTextBox.Text = config.TankSize.ToString();
-            raceDurationTextBox.Text = config.RaceLength.ToString();
 
             isChanging = true;
-            if( config.RaceDuationType == null)
+            if (config.RaceDuration.IsEmpty)
+            {
+                raceDurationTextBox.Text = "";
                 raceDurationInMinutesButton.Checked = raceDurationInLapsButton.Checked = false;
+            }
             else
             {
-                raceDurationInLapsButton.Checked = config.RaceDuationType.Value == RaceType.Laps;
-                raceDurationInMinutesButton.Checked = config.RaceDuationType.Value == RaceType.Minutes;
+                raceDurationTextBox.Text = config.RaceDuration.Length.ToString();
+                raceDurationInLapsButton.Checked = config.RaceDuration.Type == RaceType.Laps;
+                raceDurationInMinutesButton.Checked = config.RaceDuration.Type == RaceType.Minutes;
             }
             isChanging = false;
 
@@ -182,7 +189,9 @@ namespace iRacingPitCrew
 
         void raceDurationTextBox_TextChanged(object sender, EventArgs e)
         {
-            SaveTextValue(raceDurationTextBox, r => SelectedCarConfiguration.RaceLength = r);
+            SaveTextValue(raceDurationTextBox, r => {
+                SelectedCarConfiguration.RaceDuration = r== null ? new RaceDuration() : SelectedCarConfiguration.RaceDuration.ForLength((int)r);
+            });
         }
 
         void raceDurationTypeButton_CheckedChanged(object sender, EventArgs e)
@@ -190,7 +199,8 @@ namespace iRacingPitCrew
             if (isChanging)
                 return;
 
-            SelectedCarConfiguration.RaceDuationType = raceDurationInMinutesButton.Checked ? RaceType.Minutes : RaceType.Laps;
+            var newType = raceDurationInMinutesButton.Checked ? RaceType.Minutes : RaceType.Laps;
+            SelectedCarConfiguration.RaceDuration = SelectedCarConfiguration.RaceDuration.ForType(newType);
             Settings.Default.Save();
         }
     }

@@ -25,12 +25,12 @@ namespace iRacingPitCrew.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::iRacingPitCrew.CarConfigurations CarConfigurations {
+        public global::iRacingPitCrew.CarConfigurations CarConfigs {
             get {
-                return ((global::iRacingPitCrew.CarConfigurations)(this["CarConfigurations"]));
+                return ((global::iRacingPitCrew.CarConfigurations)(this["CarConfigs"]));
             }
             set {
-                this["CarConfigurations"] = value;
+                this["CarConfigs"] = value;
             }
         }
         
