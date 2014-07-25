@@ -93,6 +93,7 @@ namespace iRacingPitCrew
                 carListCombo.Items.Add(c.CarName);
 
             carListCombo.SelectedItem = Settings.Default.CurrentCarName;
+
         }
 
         void Main_Resize(object sender, EventArgs e)

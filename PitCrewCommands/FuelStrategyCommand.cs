@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
+using iRacingPitCrew.Properties;
 using iRacingPitCrew.Support;
 using iRacingSDK.Support;
 using System;
@@ -27,6 +28,9 @@ namespace iRacingPitCrew.PitCrewCommands
 {
     public class FuelStrategyCommand : PitCrewCommand
     {
+        Timer timer;
+        Action conversation;
+
         public FuelStrategyCommand(SpeechRecognitionEngine recognizer, DataCollector dataCollector, System.Speech.Synthesis.SpeechSynthesizer synthesizer)
             : base(recognizer, dataCollector, synthesizer)
         {
@@ -34,105 +38,114 @@ namespace iRacingPitCrew.PitCrewCommands
 
         public override void Start()
         {
-            recognizer.SpeechRecognized += recognizer_SpeechRecognized;
-            grammerFuelStrategy = recognizer.LoadGrammar(ProcessPitCommand, Command, "pit crew fuel strategy");
+            recognizer.LoadGrammar(ProcessPitCommand, Command, "pit crew fuel strategy");
 
-            grammarRaceLength = recognizer.LoadGrammar(ProcessCommand, GetRaceLength, g =>
-            {
-                g.Append(new SemanticResultKey("amount", Number()));
-                g.Append(new Choices(new GrammarBuilder("laps"), new GrammarBuilder("minutes")));
-            });
-            grammarRaceLength.Enabled = false;
-
-            grammarTankSize = recognizer.LoadGrammar(ProcessCommand, GetTankSize, g => {
-                g.Append(new SemanticResultKey("amount", Number()));
-                g.Append(new Choices("litre", "litres", "liters", "liter"));
-            });
-            grammarTankSize.Enabled = false;
+            conversation = FromRaceLength(FromTankSize());
         }
-
-        void recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        {
-            if (e.Result.Grammar == grammerFuelStrategy)
-                return;
-
-            if (e.Result.Grammar != grammarRaceLength)
-                DisableRaceLengthGrammar();
-        }
-
-        private void DisableRaceLengthGrammar(object state = null)
-        {
-            grammarRaceLength.Enabled = false;
-
-            if (timer != null)
-                timer.Dispose();
-        }
-
-        private void DisableTankSizeGrammar(object state = null)
-        {
-            grammarTankSize.Enabled = false;
-
-            if (timer != null)
-                timer.Dispose();
-        }
-
-        int raceLaps = 0;
-        Grammar grammarRaceLength;
-        Grammar grammarTankSize;
-        Timer timer;
-        Grammar grammerFuelStrategy;
-        private TimeSpan raceDuration;
 
         void Command(RecognitionResult rr)
         {
+            dataCollector.AverageFuelPerLap = 1.9f;
+            dataCollector.AverageLapTimeSpan = 66.2.Seconds();
+
             if (dataCollector.AverageFuelPerLap <= 0 || dataCollector.AverageLapTimeSpan.TotalSeconds <= 0)
             {
                 synthesizer.SpeakAsync("Do not have any fuel consumption or lap timing data.  You need to do 5 laps at least");
                 return;
             }
 
-            var session = dataCollector.Data.SessionData.SessionInfo.Sessions[dataCollector.Data.Telemetry.SessionNum];
-            if( !session.IsRace )
-            {
-                grammarRaceLength.Enabled = true;
-                synthesizer.SpeakAsync("What is your race length?");
-
-                timer = new Timer(DisableRaceLengthGrammar, null, 15000, Timeout.Infinite);
-            }
+            conversation();
         }
 
-        void GetRaceLength(RecognitionResult rrr)
+        void DisableGrammar(object state)
         {
-            DisableRaceLengthGrammar();
+            var grammar = (Grammar)state;
+            grammar.Enabled = false;
 
-            if (rrr.Text.EndsWith("laps"))
-            {
-                raceLaps = (int)rrr.Semantics["amount"].Value;
-                raceDuration = new TimeSpan();
-            }
-            else
-            {
-                raceDuration = TimeSpan.FromMinutes((int)rrr.Semantics["amount"].Value);
-                raceLaps = 0;
-            }
-
-            grammarTankSize.Enabled = true;
-            synthesizer.SpeakAsync("What is your fuel tank capacity?");
-
-            timer = new Timer(DisableTankSizeGrammar, null, 15000, Timeout.Infinite);
-
+            if (timer != null)
+                timer.Dispose();
         }
 
-        private void GetTankSize(RecognitionResult rrr)
+        Action AskQuestion( string question, Action<GrammarBuilder> matching, Action<RecognitionResult> answer, Action next)
         {
-            DisableTankSizeGrammar();
+            var gb = new GrammarBuilder();
+            matching(gb);
 
-            if( raceLaps != 0)
-                synthesizer.SpeakAsync("Your race length is {0} laps".F(raceLaps));
+            var grammar = new Grammar(gb);
+            grammar.Enabled = false;
+
+            recognizer.LoadGrammar(grammar);
+
+            grammar.SpeechRecognized += (s, e) => {
+                if (ProcessCommand(e.Result))
+                {
+                    grammar.Enabled = false;
+                    timer.Dispose();
+                    answer(e.Result);
+                    next();
+                }
+            };
+
+            return () => {
+                grammar.Enabled = true;
+                synthesizer.SpeakAsync(question);
+                timer = new Timer(DisableGrammar, grammar, 15000, Timeout.Infinite);
+            };
+        }
+
+        Action FromRaceLength(Action next)
+        {
+            var question = AskQuestion(
+                question: "What is your race length?",
+                matching: g =>
+                {
+                    g.Append(new SemanticResultKey("amount", Number()));
+                    g.Append(new Choices(new GrammarBuilder("laps"), new GrammarBuilder("minutes")));
+                },
+                answer: rr =>
+                {
+                    if (rr.Text.EndsWith("laps"))
+                        dataCollector.RaceDuration = new RaceDuration((int)rr.Semantics["amount"].Value, RaceType.Laps);
+                    else
+                        dataCollector.RaceDuration = new RaceDuration((int)rr.Semantics["amount"].Value, RaceType.Minutes);
+                },
+                next: next
+            );
+
+            return () => {
+                if (!dataCollector.RaceDuration.IsEmpty)
+                    next();
+                else
+                    question();
+            };
+        }
+
+        Action FromTankSize()
+        {
+            return AskQuestion(
+                question: "What is your fuel tank capacity?",
+                matching: g =>
+                {
+                    g.Append(new SemanticResultKey("amount", Number()));
+                    g.Append(new Choices("litre", "litres", "liters", "liter"));
+                },
+                answer: rr =>
+                {
+                    dataCollector.TankSize = (int)rr.Semantics["amount"].Value;
+                    Calculate();
+                },
+                next: () => { }
+            );
+        }
+
+        private void Calculate()
+        {
+            if( dataCollector.RaceDuration.Type == RaceType.Laps)
+                synthesizer.SpeakAsync("Your race length is {0} laps".F(dataCollector.RaceDuration.Length));
             else
-                synthesizer.SpeakAsync("Your race length is {0} minutes".F(raceDuration));
+                synthesizer.SpeakAsync("Your race length is {0} minutes".F(dataCollector.RaceDuration.Length));
 
-            synthesizer.SpeakAsync("Your tank size is {0}".F(rrr.Text));
+            synthesizer.SpeakAsync("Your tank size is {0}".F(dataCollector.TankSize));
 
             var t = dataCollector.AverageLapTimeSpan;
 
@@ -142,9 +155,9 @@ namespace iRacingPitCrew.PitCrewCommands
             Trace.WriteLine("Your average fuel usage is {0:0.00} litres per lap.".F(dataCollector.AverageFuelPerLap));
             synthesizer.SpeakAsync("Your average fuel usage is {0:0.00} litres per lap.".F(dataCollector.AverageFuelPerLap));
 
-            if (raceLaps == 0)
+            if (dataCollector.RaceDuration.Type == RaceType.Minutes)
             {
-                var r = FuelStrategy.Calculate(raceDuration, dataCollector.AverageFuelPerLap, dataCollector.AverageLapTimeSpan);
+                var r = FuelStrategy.Calculate(dataCollector.RaceDuration.TotalMinutes, dataCollector.AverageFuelPerLap, dataCollector.AverageLapTimeSpan);
 
                 Trace.WriteLine("Estimating you will do {0} laps in {1} minutes".F(r.EstimatedNumberOfRaceLaps, r.RaceDuration.TotalMinutes));
                 synthesizer.SpeakAsync("Estimating you will do {0} laps in {1} minutes".F(r.EstimatedNumberOfRaceLaps, (int)r.RaceDuration.TotalMinutes));
@@ -154,13 +167,11 @@ namespace iRacingPitCrew.PitCrewCommands
             }
             else
             {
-                var r = FuelStrategy.Calculate(raceLaps, dataCollector.AverageFuelPerLap, 0);
+                var r = FuelStrategy.Calculate(dataCollector.RaceDuration.Length, dataCollector.AverageFuelPerLap, 0);
 
-                Trace.WriteLine("For a {0} lap race, you will need a total of {1} litres".F(raceLaps, r.TotalFuelRequired));
-                synthesizer.SpeakAsync("For a {0} lap race, you will need a total of {1} litres".F(raceLaps, r.TotalFuelRequired));
+                Trace.WriteLine("For a {0} lap race, you will need a total of {1} litres".F(dataCollector.RaceDuration.Length, r.TotalFuelRequired));
+                synthesizer.SpeakAsync("For a {0} lap race, you will need a total of {1} litres".F(dataCollector.RaceDuration.Length, r.TotalFuelRequired));
             }
         }
-
-
     }
 }

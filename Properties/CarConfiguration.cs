@@ -1,4 +1,23 @@
-﻿using System;
+﻿// This file is part of iRacingPitCrew Application.
+//
+// Copyright 2014 Dean Netherton
+// https://github.com/vipoo/iRacingPitCrew.Net
+//
+// iRacingPitCrew is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// iRacingPitCrew is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
+using iRacingSDK.Support;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +41,13 @@ namespace iRacingPitCrew
             isNotEmpty = true;
         }
 
+        public RaceDuration(int length, RaceType type, bool isEmpty)
+        {
+            Length = length;
+            Type = type;
+            isNotEmpty = !isEmpty;
+        }
+
         public RaceDuration ForType(RaceType type)
         {
             return new RaceDuration(Length, type);
@@ -31,6 +57,8 @@ namespace iRacingPitCrew
         {
             return new RaceDuration(length, Type);
         }
+
+        public TimeSpan TotalMinutes { get { return Length.Minutes(); } }
     }
 
     public class CarConfiguration

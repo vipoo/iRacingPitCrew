@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Diagnostics;
 using iRacingPitCrew.DataCollection;
+using iRacingPitCrew.Properties;
 
 namespace iRacingPitCrew
 {
@@ -82,8 +83,27 @@ namespace iRacingPitCrew
         }
 
         public DataSample Data { get; private set; }
-        public float AverageFuelPerLap { get; private set; }
-        public TimeSpan AverageLapTimeSpan { get; private set; }
+        public float AverageFuelPerLap { get;  set; }
+        public TimeSpan AverageLapTimeSpan { get; set; }
+
+        public RaceDuration RaceDuration
+        {
+            get
+            {
+                var carName = Data.Telemetry.CamCar.CarPath;
+                var config = Settings.Default.CarConfigs.FirstOrDefault(c => c.CarName == carName);
+                return new RaceDuration(config.RaceDuration_Length, config.RaceDuration_Type, config.RaceDuration_IsEmpty); ;
+            }
+            set
+            {
+                var carName = Data.Telemetry.CamCar.CarPath;
+                var config = Settings.Default.CarConfigs.FirstOrDefault(c => c.CarName == carName);
+                config.RaceDuration_IsEmpty = value.IsEmpty;
+                config.RaceDuration_Length = value.Length;
+                config.RaceDuration_Type = value.Type;
+            }
+        }
+        public int TankSize { get; set; } //TODO: Store in config
 
         void Process()
         {
@@ -131,5 +151,6 @@ namespace iRacingPitCrew
                 return next(data);
             };
         }
+
     }
 }
