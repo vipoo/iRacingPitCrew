@@ -119,8 +119,16 @@ namespace iRacingPitCrew.PitCrewCommands
 
         void CommandRecognized(RecognitionResult rr)
         {
-            recognized();
-            Command(rr);
+            try
+            {
+                recognized();
+                Command(rr);
+            }
+            catch(Exception e)
+            {
+                SpeakAsync(e.Message);
+                throw e;
+            }
         }
 
         void DisableGrammar(object state)

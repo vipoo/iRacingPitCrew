@@ -18,6 +18,7 @@
 
 using iRacingPitCrew.PitCrewCommands;
 using iRacingPitCrew.Support;
+using System;
 using System.Collections.Generic;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
@@ -44,6 +45,8 @@ namespace iRacingPitCrew
 
             recognizer = new SpeechRecognitionEngine();
             recognizer.UpdateRecognizerSetting("CFGConfidenceRejectionThreshold", 90);
+            recognizer.EndSilenceTimeout = TimeSpan.FromMilliseconds(100);
+            recognizer.InitialSilenceTimeout = TimeSpan.FromMilliseconds(1000);
 
             this.dataCollector.Connected += dataCollector_Connected;
             this.dataCollector.Disconnected += dataCollector_Disconnected;
@@ -57,6 +60,7 @@ namespace iRacingPitCrew
             pitCrewCommands.Add(new TyreOffCommand(recognizer, synthesizer, CommandRecognized));
             pitCrewCommands.Add(new TyreOnCommand(recognizer, synthesizer, CommandRecognized));
             pitCrewCommands.Add(new CancelCommand(recognizer, synthesizer, CommandRecognized));
+            pitCrewCommands.Add(new SessionCommand(recognizer, synthesizer, CommandRecognized, dataCollector));
 
             recognizer.LoadGrammar(dicatationGrammar = new DictationGrammar("grammar:dictation#pronunciation"));
             pitCrewGrammar = recognizer.LoadGrammar(PitCrewCommand, "pit crew");
@@ -66,7 +70,6 @@ namespace iRacingPitCrew
         public void Start()
         {
             synthesizer.Volume = 100;
-            synthesizer.Rate = -2;
             
             recognizer.SetInputToDefaultAudioDevice();
             recognizer.RecognizeAsync(RecognizeMode.Multiple);

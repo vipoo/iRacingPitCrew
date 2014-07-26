@@ -96,6 +96,15 @@ namespace iRacingPitCrew.PitCrewCommands
             return CalculateToFinish(fuelLevel, estimateLapsRemaning, raceDuration, averageFuelBurnPerLap, averageLapTime, fuelTankCapacity);
         }
 
+        public static SessionStatuseResults CalculateRemainingLapsForFuel(float fuelLevel, float averageFuelBurnPerLap, TimeSpan averageLapTime)
+        {
+            var estimateLapsRemaining = (int)(fuelLevel / averageFuelBurnPerLap);
+
+            var estimateTimeRemaining = (estimateLapsRemaining * averageLapTime.TotalSeconds).Seconds();
+
+            return new SessionStatuseResults(estimateLapsRemaining, estimateTimeRemaining);
+        }
+
         static int GetTotalFuelRequired(int numberOfRaceLaps, double averageFuelBurnPerLap, float existingFuel = 0f)
         {
             var totalFuelRequired = (int)(Math.Ceiling((numberOfRaceLaps + 1) * averageFuelBurnPerLap) - existingFuel);
@@ -116,5 +125,6 @@ namespace iRacingPitCrew.PitCrewCommands
 
             return (int)Math.Ceiling(refillRequired / fuelRefill);
         }
+
     }
 }

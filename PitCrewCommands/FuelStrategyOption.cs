@@ -22,6 +22,18 @@ using iRacingSDK.Support;
 
 namespace iRacingPitCrew.PitCrewCommands
 {
+    public struct SessionStatuseResults
+    {
+        public int EstimateLapsRemaining;
+        public TimeSpan EstimateTimeRemaining;
+
+        public SessionStatuseResults(int estimateLapsRemaining, TimeSpan estimateTimeRemaining )
+        {
+            EstimateLapsRemaining = estimateLapsRemaining;
+            EstimateTimeRemaining = estimateTimeRemaining;
+        }
+    }
+    
     public struct RaceCompletionRequirements
     {
         public readonly int NumberOfPitStops;

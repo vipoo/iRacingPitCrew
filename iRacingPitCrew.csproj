@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="PitCrewCommands\DebuggingCommand.cs" />
     <Compile Include="PitCrewCommands\HelpCommand.cs" />
+    <Compile Include="PitCrewCommands\SessionCommand.cs" />
     <Compile Include="PitCrewCommands\RaceStatusCommand.cs" />
     <Compile Include="PitCrewCommands\CancelCommand .cs" />
     <Compile Include="PitCrewCommands\TyreOnCommand.cs" />

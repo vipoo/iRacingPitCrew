@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PitCrewCommands\SessionStatusCalculatorTest.cs" />
     <Compile Include="PitCrewCommands\RaceStrategyCalculatorTest.cs" />
     <Compile Include="PitCrewCommands\FuelStrategyCalculatorTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

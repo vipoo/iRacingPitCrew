@@ -73,7 +73,7 @@ namespace iRacingPitCrew.PitCrewCommands
                 else
                     SpeakAsync("Your pit stop window will open in about {0} laps".F(r.LapsToPitWindow));
             }
-
+        
             else if (session.IsLimitedSessionLaps)
             {
                 SpeakAsync(string.Format("There are {0} laps remaining", d.Telemetry.SessionLapsRemain));
