@@ -62,7 +62,7 @@ namespace iRacingPitCrew.PitCrewCommands
             }
 
             SpeakAsync(string.Format("You {0} litres of fuel.", (int)d.Telemetry.FuelLevel));
-            SpeakAsync(string.Format("You are on lap {0}.", (int)d.Telemetry.FuelLevel));
+            SpeakAsync(string.Format("You are on lap {0}.", (int)d.Telemetry.Lap));
         }
     }
 }
