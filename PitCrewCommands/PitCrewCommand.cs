@@ -73,6 +73,7 @@ namespace iRacingPitCrew.PitCrewCommands
 
         protected void SpeakAsync(string p)
         {
+            Trace.WriteLine(p);
             synthesizer.SpeakAsync(p);
         }
 

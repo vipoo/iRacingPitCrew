@@ -40,8 +40,8 @@ namespace iRacingPitCrew.PitCrewCommands
 
         protected override void Command(RecognitionResult rr)
         {
-         //   dataCollector.AverageFuelPerLap = 1.9f;
-         //   dataCollector.AverageLapTimeSpan = 66.2.Seconds();
+//            dataCollector.AverageFuelPerLap = 1.9f;
+//            dataCollector.AverageLapTimeSpan = 66.2.Seconds();
 
             if (dataCollector.AverageFuelPerLap <= 0 || dataCollector.AverageLapTimeSpan.TotalSeconds <= 0)
             {
@@ -116,29 +116,44 @@ namespace iRacingPitCrew.PitCrewCommands
 
             var t = dataCollector.AverageLapTimeSpan;
 
-            Trace.WriteLine("Your average lap time is {0:0}, {1:0.00}.".F((int)t.TotalMinutes, (float)t.Seconds + ((float)t.Milliseconds) / 1000f));
-            SpeakAsync("Your average lap time is {0:0}, {1:0.00}.".F((int)t.TotalMinutes, (float)t.Seconds + ((float)t.Milliseconds) / 1000f));
-
-            Trace.WriteLine("Your average fuel usage is {0:0.00} litres per lap.".F(dataCollector.AverageFuelPerLap));
             SpeakAsync("Your average fuel usage is {0:0.00} litres per lap.".F(dataCollector.AverageFuelPerLap));
 
             if (dataCollector.RaceDuration.Type == RaceType.Minutes)
             {
-                var r = FuelStrategy.Calculate(dataCollector.RaceDuration.TotalMinutes, dataCollector.AverageFuelPerLap, dataCollector.AverageLapTimeSpan);
+                var r = FuelStrategy.Calculate(dataCollector.RaceDuration.TotalMinutes, dataCollector.AverageFuelPerLap, dataCollector.AverageLapTimeSpan, (int)dataCollector.TankSize);
 
-                Trace.WriteLine("Estimating you will do {0} laps in {1} minutes".F(r.EstimatedNumberOfRaceLaps, r.RaceDuration.TotalMinutes));
                 SpeakAsync("Estimating you will do {0} laps in {1} minutes".F(r.EstimatedNumberOfRaceLaps, (int)r.RaceDuration.TotalMinutes));
-
-                Trace.WriteLine("For a {0} minute race, you will need a total of {1} litres".F((int)r.RaceDuration.TotalMinutes, r.TotalFuelRequired));
                 SpeakAsync("For a {0} minute race, you will need a total of {1} litres".F((int)r.RaceDuration.TotalMinutes, r.TotalFuelRequired));
+                if (r.NumberOfPitStops == 0)
+                    SpeakAsync("You will not need to stop");
+                else
+                    SpeakAsync("You will need to stop {0}".F(ToWords(r.NumberOfPitStops)));
             }
             else
             {
-                var r = FuelStrategy.Calculate(dataCollector.RaceDuration.Length, dataCollector.AverageFuelPerLap, 0);
+                var r = FuelStrategy.Calculate(dataCollector.RaceDuration.Length, dataCollector.AverageFuelPerLap, (int)dataCollector.TankSize);
 
-                Trace.WriteLine("For a {0} lap race, you will need a total of {1} litres".F(dataCollector.RaceDuration.Length, r.TotalFuelRequired));
                 SpeakAsync("For a {0} lap race, you will need a total of {1} litres".F(dataCollector.RaceDuration.Length, r.TotalFuelRequired));
+                if( r.NumberOfPitStops == 0 )
+                    SpeakAsync("You will not need to stop");
+                else
+                SpeakAsync("You will need to stop {0}".F(ToWords(r.NumberOfPitStops)));
             }
         }
+
+        private string ToWords(int p)
+        {
+            switch( p)
+            {
+                case 1:
+                    return "once";
+
+                case 2:
+                    return "twice";
+            }
+
+            return "{0} times".F(p);
+        }
+
     }
 }

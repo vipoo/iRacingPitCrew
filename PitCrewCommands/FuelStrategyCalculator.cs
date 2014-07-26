@@ -23,22 +23,25 @@ namespace iRacingPitCrew.PitCrewCommands
 {
     public static class FuelStrategy
     {
-        public static FuelStrategyOption Calculate(int numberOfRaceLaps, double averageFuelBurnPerLap, double fuelTankCapacity)
+        public static FuelStrategyOption Calculate(int numberOfRaceLaps, double averageFuelBurnPerLap, int fuelTankCapacity)
         {
             var totalFuelRequired = GetTotalFuelRequired(numberOfRaceLaps, averageFuelBurnPerLap);
 
-            var numberOfPitStops =(int)( totalFuelRequired / fuelTankCapacity);
+            var numberOfPitStops = GetTotalPitStops(fuelTankCapacity, totalFuelRequired);
 
             return new FuelStrategyOption(numberOfRaceLaps, averageFuelBurnPerLap, fuelTankCapacity, totalFuelRequired, numberOfPitStops);
         }
 
-        public static RaceDurationFuelStrategyOption Calculate(TimeSpan raceDuration, float averageFuelBurnPerLap, TimeSpan averageLapTime)
+
+        public static RaceDurationFuelStrategyOption Calculate(TimeSpan raceDuration, float averageFuelBurnPerLap, TimeSpan averageLapTime, int fuelTankCapacity)
         {
             var estimatedNumberOfRaceLaps =(int)( (raceDuration.TotalSeconds / averageLapTime.TotalSeconds) + 1);
 
             var totalFuelRequired = GetTotalFuelRequired(estimatedNumberOfRaceLaps, averageFuelBurnPerLap);
 
-            return new RaceDurationFuelStrategyOption(raceDuration, averageFuelBurnPerLap, averageLapTime, estimatedNumberOfRaceLaps, totalFuelRequired);
+            var numberOfPitStops = GetTotalPitStops(fuelTankCapacity, totalFuelRequired);
+
+            return new RaceDurationFuelStrategyOption(raceDuration, averageFuelBurnPerLap, averageLapTime, estimatedNumberOfRaceLaps, totalFuelRequired, numberOfPitStops);
         }
 
         static int GetTotalFuelRequired(int numberOfRaceLaps, double averageFuelBurnPerLap)
@@ -46,6 +49,16 @@ namespace iRacingPitCrew.PitCrewCommands
             var totalFuelRequired = (int)Math.Ceiling((numberOfRaceLaps + 1) * averageFuelBurnPerLap);
 
             return totalFuelRequired = ((totalFuelRequired / 5) + 1) * 5;
+        }
+
+        static int GetTotalPitStops(int fuelTankCapacity, int totalFuelRequired)
+        {
+            var numberOfPitStops = (int)(totalFuelRequired / fuelTankCapacity);
+            
+            if (totalFuelRequired % fuelTankCapacity == 0)
+                numberOfPitStops--;
+     
+            return numberOfPitStops;
         }
     }
 }

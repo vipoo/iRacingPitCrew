@@ -45,14 +45,16 @@ namespace iRacingPitCrew.PitCrewCommands
         public readonly TimeSpan AverageLapTime;
         public readonly int EstimatedNumberOfRaceLaps;
         public readonly int TotalFuelRequired;
+        public readonly int NumberOfPitStops;
 
-        public RaceDurationFuelStrategyOption(System.TimeSpan raceDuration, float averageFuelBurnPerLap, System.TimeSpan averageLapTime, int estimatedNumberOfRaceLaps, int totalFuelRequired)
+        public RaceDurationFuelStrategyOption(System.TimeSpan raceDuration, float averageFuelBurnPerLap, System.TimeSpan averageLapTime, int estimatedNumberOfRaceLaps, int totalFuelRequired, int numberOfPitStops)
         {
             this.RaceDuration = raceDuration;
             this.AverageFuelBurnPerLap = averageFuelBurnPerLap;
             this.AverageLapTime = averageLapTime;
             this.EstimatedNumberOfRaceLaps = estimatedNumberOfRaceLaps;
             this.TotalFuelRequired = totalFuelRequired;
+            this.NumberOfPitStops = numberOfPitStops;
         }
     }
 }
