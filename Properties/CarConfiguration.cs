@@ -89,6 +89,11 @@ namespace iRacingPitCrew
         public RaceType RaceDuration_Type { get; set; }
         public bool RaceDuration_IsEmpty { get; set; }
         public float? FuelBurn { get; set; }
+
+        public CarConfiguration()
+        {
+            RaceDuration_IsEmpty = true;
+        }
     }
 
     public class CarConfigurations : List<CarConfiguration>

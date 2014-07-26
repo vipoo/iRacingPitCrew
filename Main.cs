@@ -125,6 +125,7 @@ namespace iRacingPitCrew
                 carListCombo.Items.Add(c.CarName);
 
             carListCombo.SelectedItem = Settings.Default.CurrentCarName;
+            EnableCarDetailsFields();
         }
 
         void Main_Resize(object sender, EventArgs e)
@@ -200,6 +201,18 @@ namespace iRacingPitCrew
                 raceDurationInMinutesButton.Checked = config.RaceDuration_Type == RaceType.Minutes;
             }
             isChanging = false;
+
+            EnableCarDetailsFields();
+        }
+
+        private void EnableCarDetailsFields()
+        {
+            var carSelected = carListCombo.SelectedItem != null && carListCombo.SelectedItem.ToString() != "";
+            raceDurationTextBox.Enabled =
+                tankLimitTextBox.Enabled =
+                raceDurationInLapsButton.Enabled =
+                raceDurationInMinutesButton.Enabled =
+                carSelected;
         }
 
         void SaveTextValue( TextBox textBox, Action<int?> assign)
