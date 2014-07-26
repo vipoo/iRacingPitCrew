@@ -49,8 +49,6 @@ namespace iRacingPitCrew.Tests.PitCrewCommands
 
             r = FuelStrategy.Calculate(numberOfRaceLaps: 20, averageFuelBurnPerLap: 2.380952380952381d, fuelTankCapacity: 1);
             Assert.That(r.TotalFuelRequired, Is.EqualTo(55));
-
-
         }
 
         [Test]
@@ -105,6 +103,5 @@ namespace iRacingPitCrew.Tests.PitCrewCommands
             r = FuelStrategy.Calculate(raceDuration: 40.Minutes(), averageFuelBurnPerLap: 1.9f, averageLapTime: 60.Seconds(), fuelTankCapacity: 30);
             Assert.That(r.NumberOfPitStops, Is.EqualTo(3)); //Total fuel 85L => 2 Stop (refill => 30 - 1.9*2 => 26.2 => 85/26.2
         }
-
     }
 }
