@@ -22,6 +22,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using iRacingSDK;
+using iRacingPitCrew.Properties;
+using System.Xml.Serialization;
 
 namespace iRacingPitCrew
 {
@@ -58,7 +61,24 @@ namespace iRacingPitCrew
             return new RaceDuration(length, Type);
         }
 
+        public RaceDuration ForLength(int? length)
+        {
+            return length == null ? new RaceDuration() : new RaceDuration((int)length, Type);
+        }
+
         public TimeSpan TotalMinutes { get { return Length.Minutes(); } }
+
+        internal void WriteTo(CarConfiguration config)
+        {
+            config.RaceDuration_IsEmpty = IsEmpty;
+            config.RaceDuration_Length = Length;
+            config.RaceDuration_Type = Type;
+        }
+
+        internal static RaceDuration From(CarConfiguration config)
+        {
+            return new RaceDuration(config.RaceDuration_Length, config.RaceDuration_Type, config.RaceDuration_IsEmpty);
+        }
     }
 
     public class CarConfiguration
@@ -73,5 +93,31 @@ namespace iRacingPitCrew
 
     public class CarConfigurations : List<CarConfiguration>
     {
+        CrossThreadEvents<string> changed = new CrossThreadEvents<string>();
+
+        internal event Action<string> Changed
+        {
+            add { changed.Event += value; }
+            remove { changed.Event -= value; }
+        }
+
+        internal void HaveChanged(string carName)
+        {
+            Settings.Default.Save();
+            changed.Invoke(carName);
+        }
+
+        public CarConfiguration this[string carName]
+        {
+            get
+            {
+                return this.FirstOrDefault(c => c.CarName == carName);
+            }
+        }
+
+        public bool ContainsKey(string carName)
+        {
+            return this.Any(c => c.CarName == carName);
+        }
     }
 }

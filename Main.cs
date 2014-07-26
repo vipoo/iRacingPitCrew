@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace iRacingPitCrew
 {
@@ -31,6 +32,7 @@ namespace iRacingPitCrew
     {
         PitCrew pitCrew;
         bool isChanging;
+        private DataCollector dataCollector;
 
         public Main()
         {
@@ -44,12 +46,34 @@ namespace iRacingPitCrew
             this.toolStripMenuItem_Exit.Click += toolStripMenuItem_Exit_Click;
             notifyIcon.Visible = false;
 
-            var dc = new DataCollector();
-            pitCrew = new PitCrew(dc);
+            if (Settings.Default.CarConfigs == null)
+            {
+                Settings.Default.CarConfigs = new CarConfigurations();
+                Settings.Default.Save();
+            }
 
-            dc.Connected += dc_Connected;
-            dc.Disconnected += dc_Disconnected;
-            dc.NewSessionData += dc_NewSessionData;
+            dataCollector = new DataCollector(Settings.Default.CarConfigs);
+            pitCrew = new PitCrew(dataCollector);
+
+            Settings.Default.CarConfigs.Changed += CarConfigs_Changed;
+            dataCollector.Connected += dc_Connected;
+            dataCollector.Disconnected += dc_Disconnected;
+            dataCollector.NewSessionData += dc_NewSessionData;
+        }
+
+        void CarConfigs_Changed(string carName)
+        {
+            if( carName == carListCombo.SelectedItem.ToString())
+            {
+                var config = Settings.Default.CarConfigs[carName];
+
+                isChanging = true;
+                raceDurationTextBox.Text = config.RaceDuration_Length.ToString();
+                raceDurationInLapsButton.Checked = config.RaceDuration_Type == RaceType.Laps;
+                raceDurationInMinutesButton.Checked = config.RaceDuration_Type == RaceType.Minutes;
+                tankLimitTextBox.Text = config.TankSize.ToString();
+                isChanging = false;
+            }
         }
 
         void dc_NewSessionData(iRacingSDK.DataSample data)
@@ -57,13 +81,17 @@ namespace iRacingPitCrew
             var carPath = data.Telemetry.CamCar.CarPath;
             var configurations = Settings.Default.CarConfigs;
                         
-            if (!configurations.Any(c => c.CarName == carPath))
+            if (!configurations.ContainsKey(carPath))
             {
                 configurations.Add(new CarConfiguration { CarName = carPath });
                 Settings.Default.Save();
 
                 carListCombo.Items.Add(carPath);
-                carListCombo.SelectedText = carPath;
+                carListCombo.SelectedItem = carPath;
+            }
+            else
+            {
+                carListCombo.SelectedItem = carPath;
             }
         }
 
@@ -93,7 +121,6 @@ namespace iRacingPitCrew
                 carListCombo.Items.Add(c.CarName);
 
             carListCombo.SelectedItem = Settings.Default.CurrentCarName;
-
         }
 
         void Main_Resize(object sender, EventArgs e)
@@ -144,7 +171,7 @@ namespace iRacingPitCrew
             get
             {
                 var configurations = Settings.Default.CarConfigs;
-                return configurations.FirstOrDefault(c => c.CarName == carListCombo.SelectedItem.ToString());
+                return configurations[carListCombo.SelectedItem.ToString()];
             }
         }
 
@@ -152,6 +179,7 @@ namespace iRacingPitCrew
         {
             var config = SelectedCarConfiguration;
             Settings.Default.CurrentCarName = config.CarName;
+            Settings.Default.Save();
             
             tankLimitTextBox.Text = config.TankSize.ToString();
 
@@ -168,8 +196,6 @@ namespace iRacingPitCrew
                 raceDurationInMinutesButton.Checked = config.RaceDuration_Type == RaceType.Minutes;
             }
             isChanging = false;
-
-            Settings.Default.Save();
         }
 
         void SaveTextValue( TextBox textBox, Action<int?> assign)
@@ -192,9 +218,8 @@ namespace iRacingPitCrew
         {
             SaveTextValue(raceDurationTextBox, r => {
 
-                SelectedCarConfiguration.RaceDuration_IsEmpty = r == null;
-                if (r != null)
-                    SelectedCarConfiguration.RaceDuration_Length = (int)r; 
+                var rd = RaceDuration.From(SelectedCarConfiguration).ForLength(r);
+                rd.WriteTo(SelectedCarConfiguration);
             });
         }
 

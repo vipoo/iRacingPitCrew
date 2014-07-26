@@ -56,6 +56,7 @@ namespace iRacingPitCrew
             pitCrewCommands.Add(new HelpCommand(recognizer, synthesizer, CommandRecognized));
             pitCrewCommands.Add(new TyreOffCommand(recognizer, synthesizer, CommandRecognized));
             pitCrewCommands.Add(new TyreOnCommand(recognizer, synthesizer, CommandRecognized));
+            pitCrewCommands.Add(new CancelCommand(recognizer, synthesizer, CommandRecognized));
 
             recognizer.LoadGrammar(dicatationGrammar = new DictationGrammar("grammar:dictation#pronunciation"));
             pitCrewGrammar = recognizer.LoadGrammar(PitCrewCommand, "pit crew");

@@ -40,6 +40,9 @@ namespace iRacingPitCrew.PitCrewCommands
 
         protected override void Command(RecognitionResult rr)
         {
+         //   dataCollector.AverageFuelPerLap = 1.9f;
+         //   dataCollector.AverageLapTimeSpan = 66.2.Seconds();
+
             if (dataCollector.AverageFuelPerLap <= 0 || dataCollector.AverageLapTimeSpan.TotalSeconds <= 0)
             {
                 SpeakAsync("Do not have any fuel consumption or lap timing data.  You need to do 5 laps at least");
@@ -78,7 +81,7 @@ namespace iRacingPitCrew.PitCrewCommands
 
         Action FromTankSize()
         {
-            return AskQuestion(
+            var question = AskQuestion(
                 question: "What is your fuel tank capacity?",
                 matching: g =>
                 {
@@ -92,6 +95,14 @@ namespace iRacingPitCrew.PitCrewCommands
                 },
                 next: () => { }
             );
+
+            return () =>
+            {
+                if (dataCollector.TankSize != null)
+                    Calculate();
+                else
+                    question();
+            };
         }
 
         void Calculate()

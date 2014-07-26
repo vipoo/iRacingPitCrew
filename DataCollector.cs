@@ -52,6 +52,13 @@ namespace iRacingPitCrew
             remove { iracing.NewSessionData -= value; }
         }
 
+        CarConfigurations carConfigurations;
+
+        public DataCollector(CarConfigurations carConfigurations)
+        {
+            this.carConfigurations = carConfigurations;
+        }
+
         public bool IsConnectedToiRacing
         {
             get
@@ -88,22 +95,34 @@ namespace iRacingPitCrew
 
         public RaceDuration RaceDuration
         {
-            get
-            {
-                var carName = Data.Telemetry.CamCar.CarPath;
-                var config = Settings.Default.CarConfigs.FirstOrDefault(c => c.CarName == carName);
-                return new RaceDuration(config.RaceDuration_Length, config.RaceDuration_Type, config.RaceDuration_IsEmpty); ;
-            }
             set
             {
-                var carName = Data.Telemetry.CamCar.CarPath;
-                var config = Settings.Default.CarConfigs.FirstOrDefault(c => c.CarName == carName);
-                config.RaceDuration_IsEmpty = value.IsEmpty;
-                config.RaceDuration_Length = value.Length;
-                config.RaceDuration_Type = value.Type;
+                value.WriteTo(carConfigurations[CurrentCarName]);
+                carConfigurations.HaveChanged(CurrentCarName);
+            }
+            get
+            {
+                return RaceDuration.From(carConfigurations[CurrentCarName]);
             }
         }
-        public int TankSize { get; set; } //TODO: Store in config
+
+        private string CurrentCarName
+        {
+            get { return Data.Telemetry.CamCar.CarPath; }
+        }
+
+        public int? TankSize
+        {
+            set
+            {
+                carConfigurations[CurrentCarName].TankSize = value;
+                carConfigurations.HaveChanged(CurrentCarName);
+            }
+            get
+            {
+                return carConfigurations[CurrentCarName].TankSize;
+            }
+        } 
 
         void Process()
         {

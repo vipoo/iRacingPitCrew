@@ -102,8 +102,7 @@ namespace iRacingPitCrew.PitCrewCommands
             {
                 if (Recognition.ProcessCommand(e.Result))
                 {
-                    grammar.Enabled = false;
-                    timer.Dispose();
+                    DisableGrammar(grammar);
                     answer(e.Result);
                     next();
                 }
