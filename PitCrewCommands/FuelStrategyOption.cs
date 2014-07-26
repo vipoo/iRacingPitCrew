@@ -18,8 +18,36 @@
 
 
 using System;
+using iRacingSDK.Support;
+
 namespace iRacingPitCrew.PitCrewCommands
 {
+    public struct RaceCompletionRequirements
+    {
+        public readonly int NumberOfPitStops;
+        public readonly int TotalFuelRequired;
+        public readonly int TotalFuelRequiredAtNextStop;
+        public bool PitWindowOpened;
+        public int LapsToPitWindow;
+        public int EstimateLapsRemaining;
+
+        public RaceCompletionRequirements(int numberOfPitStops, int totalFuelRequired, int totalFuelRequiredAtNextStop, bool pitWindowOpened, int lapsToPitWindow, int estimateLapsRemaining)
+        {
+            NumberOfPitStops = numberOfPitStops;
+            TotalFuelRequired = totalFuelRequired;
+            TotalFuelRequiredAtNextStop = totalFuelRequiredAtNextStop;
+            PitWindowOpened = pitWindowOpened;
+            LapsToPitWindow = lapsToPitWindow;
+            EstimateLapsRemaining = estimateLapsRemaining;
+        }
+
+        public override string ToString()
+        {
+            return "numberOfPitStops: {0}, totalFuelRequired: {1}, totalFuelRequiredAtNextStop: {2}, pitWindowOpened: {3}, lapsToPitWindow: {4}, estimateLapsRemaining: {5}".F(
+                NumberOfPitStops, TotalFuelRequired, TotalFuelRequiredAtNextStop, PitWindowOpened, LapsToPitWindow, EstimateLapsRemaining);
+        }
+    }
+
     public struct FuelStrategyOption
     {
         public readonly int NumberOfRaceLaps;

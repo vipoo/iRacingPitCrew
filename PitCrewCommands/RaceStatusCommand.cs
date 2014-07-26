@@ -19,6 +19,7 @@
 using System;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
+using iRacingSDK.Support;
 
 namespace iRacingPitCrew.PitCrewCommands
 {
@@ -55,14 +56,31 @@ namespace iRacingPitCrew.PitCrewCommands
                 var sessionTimeSpanRemaining = TimeSpan.FromSeconds(d.Telemetry.SessionTimeRemain);
 
                 SpeakAsync(string.Format("There are {0} minutes remaining in this race.", (int)sessionTimeSpanRemaining.TotalMinutes));
+
+                 var r = FuelStrategy.CalculateToFinish(
+                     fuelLevel: d.Telemetry.FuelLevel,
+                     remainingTime: sessionTimeSpanRemaining,
+                     raceDuration: dataCollector.RaceDuration.TotalMinutes,
+                     averageFuelBurnPerLap: dataCollector.AverageFuelPerLap,
+                     averageLapTime: dataCollector.AverageLapTimeSpan, 
+                     fuelTankCapacity: (int)dataCollector.TankSize);
+
+                SpeakAsync("You need {0} litres to finish race".F(r.TotalFuelRequired));
+                SpeakAsync("You need at least {0} litres at next stop".F(r.TotalFuelRequiredAtNextStop));
+                if (r.PitWindowOpened)
+                    SpeakAsync("Your pit window is open");
+                else
+                    SpeakAsync("Your pit stop window will open in {0} laps".F(r.LapsToPitWindow));
             }
+
             else if (session.IsLimitedSessionLaps)
             {
+                SpeakAsync(string.Format("You {0} litres of fuel.", (int)d.Telemetry.FuelLevel));
+
                 SpeakAsync(string.Format("There are {0} laps remaining in this race.", d.Telemetry.SessionLapsRemain));
             }
 
-            SpeakAsync(string.Format("You {0} litres of fuel.", (int)d.Telemetry.FuelLevel));
-            SpeakAsync(string.Format("You are on lap {0}.", (int)d.Telemetry.Lap));
+
         }
     }
 }

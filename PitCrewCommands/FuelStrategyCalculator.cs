@@ -25,40 +25,91 @@ namespace iRacingPitCrew.PitCrewCommands
     {
         public static FuelStrategyOption Calculate(int numberOfRaceLaps, double averageFuelBurnPerLap, int fuelTankCapacity)
         {
+            var twoLapsOfFuel = averageFuelBurnPerLap * 2;
+
             var totalFuelRequired = GetTotalFuelRequired(numberOfRaceLaps, averageFuelBurnPerLap);
 
-            var numberOfPitStops = GetTotalPitStops(fuelTankCapacity, totalFuelRequired);
+            var numberOfPitStops = GetTotalPitStops(fuelTankCapacity, totalFuelRequired, averageFuelBurnPerLap);
 
             return new FuelStrategyOption(numberOfRaceLaps, averageFuelBurnPerLap, fuelTankCapacity, totalFuelRequired, numberOfPitStops);
         }
-
-
+            
         public static RaceDurationFuelStrategyOption Calculate(TimeSpan raceDuration, float averageFuelBurnPerLap, TimeSpan averageLapTime, int fuelTankCapacity)
         {
             var estimatedNumberOfRaceLaps =(int)( (raceDuration.TotalSeconds / averageLapTime.TotalSeconds) + 1);
 
             var totalFuelRequired = GetTotalFuelRequired(estimatedNumberOfRaceLaps, averageFuelBurnPerLap);
 
-            var numberOfPitStops = GetTotalPitStops(fuelTankCapacity, totalFuelRequired);
+            var numberOfPitStops = GetTotalPitStops(fuelTankCapacity, totalFuelRequired, averageFuelBurnPerLap);
 
             return new RaceDurationFuelStrategyOption(raceDuration, averageFuelBurnPerLap, averageLapTime, estimatedNumberOfRaceLaps, totalFuelRequired, numberOfPitStops);
         }
 
-        static int GetTotalFuelRequired(int numberOfRaceLaps, double averageFuelBurnPerLap)
+        public static RaceCompletionRequirements CalculateToFinish(float fuelLevel, TimeSpan remainingTime, TimeSpan raceDuration, float averageFuelBurnPerLap, TimeSpan averageLapTime, int fuelTankCapacity)
         {
-            var totalFuelRequired = (int)Math.Ceiling((numberOfRaceLaps + 1) * averageFuelBurnPerLap);
+            var estimateLapsRemaning = (int)((remainingTime.TotalSeconds / averageLapTime.TotalSeconds) + 1);
+
+            var totalFuelRequired = GetTotalFuelRequired(estimateLapsRemaning, averageFuelBurnPerLap, fuelLevel);
+
+            int numberOfPitStops = 0;
+            int fuelAtNextStop;
+            bool pitWindowOpened;
+            float fuelToBurnUntilPitWindow;
+            int lapsToPitWindow;
+
+            if( totalFuelRequired > 0)
+                numberOfPitStops = GetTotalPitStops(fuelTankCapacity, totalFuelRequired + (int)fuelLevel, averageFuelBurnPerLap, (int)fuelLevel);
+
+            if( numberOfPitStops == 0)
+            {
+                fuelAtNextStop = 0;
+                pitWindowOpened = false;
+                fuelToBurnUntilPitWindow = 0;
+                lapsToPitWindow = 0;
+            }
+            else if(numberOfPitStops == 1)
+            {
+                fuelAtNextStop = totalFuelRequired;
+
+                pitWindowOpened = fuelLevel + fuelAtNextStop <= fuelTankCapacity;
+
+                fuelToBurnUntilPitWindow = fuelLevel + fuelAtNextStop - fuelTankCapacity;
+
+                lapsToPitWindow = Math.Max(0, (int)(fuelToBurnUntilPitWindow / averageFuelBurnPerLap));
+            }
+            else
+            {
+                fuelAtNextStop = fuelTankCapacity;
+
+                pitWindowOpened = fuelLevel <= 2 * averageFuelBurnPerLap;
+
+                fuelToBurnUntilPitWindow = fuelLevel - (2 * averageFuelBurnPerLap);
+
+                lapsToPitWindow = Math.Max(0, (int)(fuelToBurnUntilPitWindow / averageFuelBurnPerLap));
+            }
+            
+            return new RaceCompletionRequirements(numberOfPitStops, totalFuelRequired, fuelAtNextStop, pitWindowOpened, lapsToPitWindow, estimateLapsRemaning);
+        }
+
+        static int GetTotalFuelRequired(int numberOfRaceLaps, double averageFuelBurnPerLap, float existingFuel = 0f)
+        {
+            var totalFuelRequired = (int)(Math.Ceiling((numberOfRaceLaps + 1) * averageFuelBurnPerLap) - existingFuel);
 
             return totalFuelRequired = ((totalFuelRequired / 5) + 1) * 5;
         }
 
-        static int GetTotalPitStops(int fuelTankCapacity, int totalFuelRequired)
+        static int GetTotalPitStops(int fuelTankCapacity, int totalFuelRequired, double averageFuelBurnPerLap, int fuelLevel = -1)
         {
-            var numberOfPitStops = (int)(totalFuelRequired / fuelTankCapacity);
-            
-            if (totalFuelRequired % fuelTankCapacity == 0)
-                numberOfPitStops--;
-     
-            return numberOfPitStops;
+            if (fuelLevel == -1)
+                fuelLevel = fuelTankCapacity;
+
+            var twoLapsOfFuel = averageFuelBurnPerLap * 2;
+
+            var fuelRefill = fuelTankCapacity - twoLapsOfFuel;
+
+            var refillRequired = (double)totalFuelRequired - fuelLevel;
+
+            return (int)Math.Ceiling(refillRequired / fuelRefill);
         }
     }
 }
