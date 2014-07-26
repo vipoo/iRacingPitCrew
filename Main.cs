@@ -18,6 +18,7 @@
 
 using iRacingPitCrew.Properties;
 using iRacingPitCrew.Support;
+using iRacingSDK.Support;
 using System;
 using System.Linq;
 using System.Diagnostics;
@@ -53,6 +54,9 @@ namespace iRacingPitCrew
             }
 
             dataCollector = new DataCollector(Settings.Default.CarConfigs);
+            //dataCollector.AverageFuelPerLap = 1.9f;
+            //dataCollector.AverageLapTimeSpan = 66.2.Seconds();
+
             pitCrew = new PitCrew(dataCollector);
 
             Settings.Default.CarConfigs.Changed += CarConfigs_Changed;

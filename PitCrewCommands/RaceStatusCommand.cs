@@ -57,30 +57,42 @@ namespace iRacingPitCrew.PitCrewCommands
 
                 SpeakAsync(string.Format("There are {0} minutes remaining in this race.", (int)sessionTimeSpanRemaining.TotalMinutes));
 
-                 var r = FuelStrategy.CalculateToFinish(
-                     fuelLevel: d.Telemetry.FuelLevel,
-                     remainingTime: sessionTimeSpanRemaining,
-                     raceDuration: dataCollector.RaceDuration.TotalMinutes,
-                     averageFuelBurnPerLap: dataCollector.AverageFuelPerLap,
-                     averageLapTime: dataCollector.AverageLapTimeSpan, 
-                     fuelTankCapacity: (int)dataCollector.TankSize);
+                var r = FuelStrategy.CalculateToFinish(
+                    fuelLevel: d.Telemetry.FuelLevel,
+                    remainingTime: sessionTimeSpanRemaining,
+                    raceDuration: dataCollector.RaceDuration.TotalMinutes,
+                    averageFuelBurnPerLap: dataCollector.AverageFuelPerLap,
+                    averageLapTime: dataCollector.AverageLapTimeSpan,
+                    fuelTankCapacity: (int)dataCollector.TankSize);
 
-                SpeakAsync("You need {0} litres to finish race".F(r.TotalFuelRequired));
-                SpeakAsync("You need at least {0} litres at next stop".F(r.TotalFuelRequiredAtNextStop));
+                SpeakAsync("There are about {0} laps remaining".F(r.EstimateLapsRemaining));
+                SpeakAsync("You need an additional {0} litres to finish".F(r.TotalFuelRequired));
+                SpeakAsync("At your next stop, you need {0} litres".F(r.TotalFuelRequiredAtNextStop));
                 if (r.PitWindowOpened)
                     SpeakAsync("Your pit window is open");
                 else
-                    SpeakAsync("Your pit stop window will open in {0} laps".F(r.LapsToPitWindow));
+                    SpeakAsync("Your pit stop window will open in about {0} laps".F(r.LapsToPitWindow));
             }
 
             else if (session.IsLimitedSessionLaps)
             {
-                SpeakAsync(string.Format("You {0} litres of fuel.", (int)d.Telemetry.FuelLevel));
+                SpeakAsync(string.Format("There are {0} laps remaining", d.Telemetry.SessionLapsRemain));
+                
+                var r = FuelStrategy.CalculateToFinish(
+                    fuelLevel: d.Telemetry.FuelLevel,
+                    remainingLaps: d.Telemetry.SessionLapsRemain,
+                    raceDuration: dataCollector.RaceDuration.TotalMinutes,
+                    averageFuelBurnPerLap: dataCollector.AverageFuelPerLap,
+                    averageLapTime: dataCollector.AverageLapTimeSpan,
+                    fuelTankCapacity: (int)dataCollector.TankSize);
 
-                SpeakAsync(string.Format("There are {0} laps remaining in this race.", d.Telemetry.SessionLapsRemain));
+                SpeakAsync("You need an additional {0} litres to finish".F(r.TotalFuelRequired));
+                SpeakAsync("At your next stop, you need {0} litres".F(r.TotalFuelRequiredAtNextStop));
+                if (r.PitWindowOpened)
+                    SpeakAsync("Your pit window is open");
+                else
+                    SpeakAsync("Your pit stop window will open in about {0} laps".F(r.LapsToPitWindow));
             }
-
-
         }
     }
 }
