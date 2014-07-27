@@ -16,15 +16,12 @@
 // You should have received a copy of the GNU General Public License
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
+using iRacingPitCrew.DataCollection;
 using iRacingSDK;
 using iRacingSDK.Support;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
 using System.Diagnostics;
-using iRacingPitCrew.DataCollection;
-using iRacingPitCrew.Properties;
+using System.Threading.Tasks;
 
 namespace iRacingPitCrew
 {
@@ -132,7 +129,8 @@ namespace iRacingPitCrew
                 var onEachLap = OnEachLap.Capture(averageFuelPerLap);
 
                 var averageLapTime = AverageTime.Capture(avg => AverageLapTimeSpan = avg);
-                var onEachSession = OnEachSessionUpdate.Capture(averageLapTime);
+                var onEachSessionLap = OnEachSessionLap.Capture(averageLapTime);
+                var onEachSession = OnEachSessionUpdate.Capture(onEachSessionLap);
 
                 var data = CaptureLatestData(EmitTo.All(onEachLap, onEachSession));
                 var connected = ConnectedDataOnly(data);
@@ -170,6 +168,5 @@ namespace iRacingPitCrew
                 return next(data);
             };
         }
-
     }
 }

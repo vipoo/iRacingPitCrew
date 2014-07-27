@@ -17,22 +17,29 @@
 // along with iRacingPitCrew.  If not, see <http://www.gnu.org/licenses/>.
 
 using iRacingSDK;
+using iRacingSDK.Support;
 using System;
+using System.Diagnostics;
 
 namespace iRacingPitCrew.DataCollection
 {
-    public static class OnEachSessionUpdate
+    public static class OnEachSessionLap
     {
         public static Func<DataSample, bool> Capture(Func<DataSample, bool> next)
         {
-            var lastSessionInfoUpdate = -1;
-
+            var lastLapNumber = -1L;
+            
             return data =>
             {
-                if (!data.IsConnected || data.SessionData.InfoUpdate == lastSessionInfoUpdate)
+                var car = data.Telemetry.CamCar;
+
+                if (car == null)
                     return true;
 
-                lastSessionInfoUpdate = data.SessionData.InfoUpdate;
+                if (car.ResultPosition.Lap == lastLapNumber)
+                    return true;
+
+                lastLapNumber = car.ResultPosition.Lap;
 
                 return next(data);
             };

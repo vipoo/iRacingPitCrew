@@ -38,6 +38,11 @@ namespace iRacingPitCrew.DataCollection
 
                 var telemetry = data.Telemetry;
                 var car = telemetry.CamCar;
+                if( car == null )
+                {
+                    Trace.WriteLine("No active car!", "DEBUG");
+                    return true;
+                }
 
                 if( telemetry.Lap == 0 && car.TrackSurface != TrackLocation.NotInWorld)
                 {

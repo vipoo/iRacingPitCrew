@@ -43,7 +43,7 @@ namespace iRacingPitCrew.PitCrewCommands
                 return;
             }
 
-            var session = d.SessionData.SessionInfo.Sessions[d.Telemetry.SessionNum];
+            var session = d.Telemetry.Session;
 
             if (!session.IsRace)
             {

@@ -87,6 +87,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataCollection\OnEachSessionLap.cs" />
     <Compile Include="PitCrewCommands\DebuggingCommand.cs" />
     <Compile Include="PitCrewCommands\HelpCommand.cs" />
     <Compile Include="PitCrewCommands\SessionCommand.cs" />
