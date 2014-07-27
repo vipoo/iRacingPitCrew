@@ -28,7 +28,7 @@ Once you have heard the **Copy** reply, you can issue your command
 | *session status* | will advise how many laps and time remaning until you run out of fuel |
 | *race status* | will advise how many laps remaining, your next pit stop (if any) and how much fuel you will need |
 | *fuel strategy* | will advise your current fuel usage, and given your tank and race length, how many pit stops you will need.  Use this command in your practice session to workout how many pitstops you need |
-| *set fuel <amount> litres* | This command will instruct your pit crew to set the amount of fuel you will get at your next stop.  If they missunderstand the number (eg: confuse 50 with 15), try speaking the digits (eg: five zero) |
+| *set fuel [amount] litres* | This command will instruct your pit crew to set the amount of fuel you will get at your next stop.  If they missunderstand the number (eg: confuse 50 with 15), try speaking the digits (eg: five zero) |
 | *cancel* | canc el your Pit Crew.  Use this command if your Pit Crew activate when you didnt mean to get their attention |
 
 
