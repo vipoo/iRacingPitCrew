@@ -91,7 +91,7 @@ namespace iRacingPitCrew
         {
             pitCrewGrammar.Enabled = dicatationGrammar.Enabled = false;
 
-            synthesizer.SpeakAsync("Ready");
+            synthesizer.SpeakAsync("copy");
 
             foreach (var pcc in pitCrewCommands)
                 pcc.Enable = true;
