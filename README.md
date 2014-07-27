@@ -3,6 +3,11 @@ iRacingPitCrew
 
 This is an application for the iRacing RaceSim.  It allows for voice controlled commands to change tyres, fuel and get audio feed back of race status
 
+How to install
+==============
+
+You can install the latest version of the application from: https://iracingpitcrew.s3.amazonaws.com/index.html
+
 How to Use
 ==========
 
