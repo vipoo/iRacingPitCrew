@@ -5,3 +5,4 @@
 packages/
 TestResult.xml
 *.user
+publish/*
