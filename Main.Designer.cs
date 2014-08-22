@@ -46,6 +46,10 @@
             this.label5 = new System.Windows.Forms.Label();
             this.tankLimitTextBox = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
+            this.cultureDropDown = new System.Windows.Forms.ComboBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.activationFilterCheckBox = new System.Windows.Forms.CheckBox();
+            this.helpProvider = new System.Windows.Forms.HelpProvider();
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -196,11 +200,47 @@
             this.label6.TabIndex = 5;
             this.label6.Text = "litres";
             // 
+            // cultureDropDown
+            // 
+            this.cultureDropDown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cultureDropDown.FormattingEnabled = true;
+            this.cultureDropDown.Location = new System.Drawing.Point(456, 31);
+            this.cultureDropDown.Name = "cultureDropDown";
+            this.cultureDropDown.Size = new System.Drawing.Size(193, 21);
+            this.cultureDropDown.TabIndex = 10;
+            this.cultureDropDown.SelectedIndexChanged += new System.EventHandler(this.cultureDropDown_SelectedIndexChanged);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(389, 34);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(55, 13);
+            this.label7.TabIndex = 11;
+            this.label7.Text = "Language";
+            // 
+            // activationFilterCheckBox
+            // 
+            this.activationFilterCheckBox.AutoSize = true;
+            this.activationFilterCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.helpProvider.SetHelpString(this.activationFilterCheckBox, "If the activation phrase \"pit crew\" is not reconginise, try unchecking this");
+            this.activationFilterCheckBox.Location = new System.Drawing.Point(374, 58);
+            this.activationFilterCheckBox.Name = "activationFilterCheckBox";
+            this.helpProvider.SetShowHelp(this.activationFilterCheckBox, true);
+            this.activationFilterCheckBox.Size = new System.Drawing.Size(98, 17);
+            this.activationFilterCheckBox.TabIndex = 12;
+            this.activationFilterCheckBox.Text = "Activation Filter";
+            this.activationFilterCheckBox.UseVisualStyleBackColor = true;
+            this.activationFilterCheckBox.CheckedChanged += new System.EventHandler(this.activationFilterCheckBox_CheckedChanged);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(811, 364);
+            this.ClientSize = new System.Drawing.Size(685, 226);
+            this.Controls.Add(this.activationFilterCheckBox);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.cultureDropDown);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.tankLimitTextBox);
             this.Controls.Add(this.label5);
@@ -214,7 +254,7 @@
             this.Controls.Add(this.iRacingConnectionStatus);
             this.Controls.Add(this.label1);
             this.Name = "Main";
-            this.Text = "Form1";
+            this.Text = "iRacing Virtual Pit Crew";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Main_FormClosed);
             this.Load += new System.EventHandler(this.Main_Load);
             this.Resize += new System.EventHandler(this.Main_Resize);
@@ -242,6 +282,10 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox tankLimitTextBox;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.ComboBox cultureDropDown;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox activationFilterCheckBox;
+        private System.Windows.Forms.HelpProvider helpProvider;
     }
 }
 

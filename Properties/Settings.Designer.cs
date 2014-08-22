@@ -45,5 +45,29 @@ namespace iRacingPitCrew.Properties {
                 this["CurrentCarName"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Culture {
+            get {
+                return ((string)(this["Culture"]));
+            }
+            set {
+                this["Culture"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ActivationFilter {
+            get {
+                return ((bool)(this["ActivationFilter"]));
+            }
+            set {
+                this["ActivationFilter"] = value;
+            }
+        }
     }
 }

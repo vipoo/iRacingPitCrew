@@ -26,6 +26,8 @@ using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Threading;
+using System.Globalization;
+using System.Speech.Recognition;
 
 namespace iRacingPitCrew
 {
@@ -37,6 +39,7 @@ namespace iRacingPitCrew
 
         public Main()
         {
+
             var filename = string.Format("iRacingPitCrew-{0}.log", DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss"));
 
             LogListener.ToFile(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), filename));
@@ -52,17 +55,6 @@ namespace iRacingPitCrew
                 Settings.Default.CarConfigs = new CarConfigurations();
                 Settings.Default.Save();
             }
-
-            dataCollector = new DataCollector(Settings.Default.CarConfigs);
-            //dataCollector.AverageFuelPerLap = 1.9f;
-            //dataCollector.AverageLapTimeSpan = 66.2.Seconds();
-
-            pitCrew = new PitCrew(dataCollector);
-
-            Settings.Default.CarConfigs.Changed += CarConfigs_Changed;
-            dataCollector.Connected += dc_Connected;
-            dataCollector.Disconnected += dc_Disconnected;
-            dataCollector.NewSessionData += dc_NewSessionData;
         }
 
         void CarConfigs_Changed(string carName)
@@ -111,6 +103,35 @@ namespace iRacingPitCrew
 
         void Main_Load(object sender, EventArgs e)
         {
+            activationFilterCheckBox.Checked = Settings.Default.ActivationFilter;
+
+            var cultureKey = Settings.Default.Culture;
+            if( cultureKey == null || cultureKey == "" )
+            {
+                var culture = SpeechRecognitionEngine.InstalledRecognizers().First().Culture;
+                cultureKey = culture.Name;
+                Settings.Default.Culture = cultureKey;
+                Settings.Default.Save();
+            }
+
+            var cultureInfo = new CultureInfo(cultureKey);
+
+            dataCollector = new DataCollector(Settings.Default.CarConfigs);
+            //dataCollector.AverageFuelPerLap = 1.9f;
+            //dataCollector.AverageLapTimeSpan = 66.2.Seconds();
+
+            pitCrew = new PitCrew(dataCollector, cultureInfo);
+
+            Settings.Default.CarConfigs.Changed += CarConfigs_Changed;
+            dataCollector.Connected += dc_Connected;
+            dataCollector.Disconnected += dc_Disconnected;
+            dataCollector.NewSessionData += dc_NewSessionData;
+
+            foreach (var s in SpeechRecognitionEngine.InstalledRecognizers())
+                cultureDropDown.Items.Add(s.Culture.DisplayName);
+
+            cultureDropDown.SelectedItem = cultureInfo.NativeName;
+
             pitCrew.Start();
 
             var configurations = Settings.Default.CarConfigs;
@@ -249,6 +270,32 @@ namespace iRacingPitCrew
             SelectedCarConfiguration.RaceDuration_Type = newType;
             SelectedCarConfiguration.RaceDuration_IsEmpty = false;
             Settings.Default.Save();
+        }
+
+        private void cultureDropDown_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var cultureName = cultureDropDown.SelectedItem;
+
+            var culture = SpeechRecognitionEngine.InstalledRecognizers().First(s => s.Culture.EnglishName == (string)cultureName).Culture;
+
+            Settings.Default.Culture = culture.Name;
+            Settings.Default.Save();
+
+            var cultureInfo = new System.Globalization.CultureInfo(culture.Name);
+
+            Thread.CurrentThread.CurrentCulture = cultureInfo;
+            Thread.CurrentThread.CurrentUICulture = cultureInfo;
+            pitCrew.ChangeCulture(cultureInfo);
+
+        }
+
+        private void activationFilterCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            Settings.Default.ActivationFilter = activationFilterCheckBox.Checked;
+            Settings.Default.Save();
+
+            if (pitCrew != null)
+                pitCrew.ChangeActivationFilter();
         }
     }
 }

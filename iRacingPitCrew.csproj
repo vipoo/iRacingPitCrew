@@ -32,7 +32,7 @@
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>index.html</WebPage>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>3</ApplicationRevision>
+    <ApplicationRevision>5</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -73,6 +73,12 @@
   <PropertyGroup>
     <ApplicationIcon>iracing_logo.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetZone>LocalIntranet</TargetZone>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -88,6 +94,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataCollection\OnEachSessionLap.cs" />
+    <Compile Include="Phrases.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Phrases.Designer.cs">
+      <DependentUpon>Phrases.cs</DependentUpon>
+    </Compile>
     <Compile Include="PitCrewCommands\DebuggingCommand.cs" />
     <Compile Include="PitCrewCommands\HelpCommand.cs" />
     <Compile Include="PitCrewCommands\SessionCommand.cs" />
@@ -125,6 +137,9 @@
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Phrases.resx">
+      <DependentUpon>Phrases.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -136,6 +151,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="iRacingPitCrew_TemporaryKey.pfx" />
+    <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
