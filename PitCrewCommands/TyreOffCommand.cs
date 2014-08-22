@@ -33,7 +33,7 @@ namespace iRacingPitCrew.PitCrewCommands
 
         protected override void Command(RecognitionResult rr)
         {
-            SpeakAsync("Will not be changing tyres at next pit stop.");
+            SpeakAsync("Will not change tyres at the next pit stop.");
             iRacing.PitCommand.ClearTireChange();
         }
     }

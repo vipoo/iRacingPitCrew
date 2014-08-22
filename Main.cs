@@ -147,6 +147,19 @@ namespace iRacingPitCrew
 
             carListCombo.SelectedItem = Settings.Default.CurrentCarName;
             EnableCarDetailsFields();
+
+            foreach (var item in new[] {
+                new ListViewItem(new [] {"Fuel Strategy", "Get details of your best fuel strategy to complete race"}),
+                new ListViewItem(new [] {"Race Status", "Get details of your current race status - laps/time remaining"}),
+                new ListViewItem(new [] {"Session Status", "Get details of your current session -- time/fuel usage"}),
+                new ListViewItem(new [] {"Set Fuel <amount> litres", "Set the amount of fuel to get at your next pit stop"}),
+                new ListViewItem(new [] {"Reset", "No tyres fuel or windscreen cleaning at your next pit stop"}),
+                new ListViewItem(new [] {"No Tyre Change", "Will not change tyres at the next pit stop"}),
+                new ListViewItem(new [] {"Change All Tyres", "Will change tyres at the next pit stop"}),
+                new ListViewItem(new [] {"Cancel", "Will cancel your call to the pitcrew"})
+            }) 
+                pitCrewVoiceCommandsList.Items.Add(item);
+
         }
 
         void Main_Resize(object sender, EventArgs e)
