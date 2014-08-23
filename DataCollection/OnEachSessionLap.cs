@@ -36,6 +36,9 @@ namespace iRacingPitCrew.DataCollection
                 if (car == null)
                     return true;
 
+                if (car.ResultPosition == null)
+                    return true;
+
                 if (car.ResultPosition.Lap == lastLapNumber)
                     return true;
 
