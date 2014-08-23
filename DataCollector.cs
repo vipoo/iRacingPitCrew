@@ -27,9 +27,14 @@ namespace iRacingPitCrew
 {
     public class DataCollector
     {
+        public DataSample Data { get; private set; }
+        public float AverageFuelPerLap { get; set; }
+        public TimeSpan AverageLapTimeSpan { get; set; }
+
         Task process;
         bool requestCancel = false;
         iRacingConnection iracing = new iRacingConnection();
+        CarConfigurations carConfigurations;
 
         public event Action Connected
         {
@@ -48,8 +53,6 @@ namespace iRacingPitCrew
             add { iracing.NewSessionData += value; }
             remove { iracing.NewSessionData -= value; }
         }
-
-        CarConfigurations carConfigurations;
 
         public DataCollector(CarConfigurations carConfigurations)
         {
@@ -85,10 +88,6 @@ namespace iRacingPitCrew
             requestCancel = true;
             p.Wait();
         }
-
-        public DataSample Data { get; private set; }
-        public float AverageFuelPerLap { get;  set; }
-        public TimeSpan AverageLapTimeSpan { get; set; }
 
         public RaceDuration RaceDuration
         {
