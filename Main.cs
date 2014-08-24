@@ -18,16 +18,14 @@
 
 using iRacingPitCrew.Properties;
 using iRacingPitCrew.Support;
-using iRacingSDK.Support;
 using System;
-using System.Linq;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Windows.Forms;
-using System.Threading;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Speech.Recognition;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace iRacingPitCrew
 {
@@ -39,7 +37,6 @@ namespace iRacingPitCrew
 
         public Main()
         {
-
             var filename = string.Format("iRacingPitCrew-{0}.log", DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss"));
 
             LogListener.ToFile(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), filename));
@@ -105,35 +102,43 @@ namespace iRacingPitCrew
         {
             activationFilterCheckBox.Checked = Settings.Default.ActivationFilter;
 
-            var cultureKey = Settings.Default.Culture;
-            if( cultureKey == null || cultureKey == "" )
-            {
-                var culture = SpeechRecognitionEngine.InstalledRecognizers().First().Culture;
-                cultureKey = culture.Name;
-                Settings.Default.Culture = cultureKey;
-                Settings.Default.Save();
-            }
-
-            var cultureInfo = new CultureInfo(cultureKey);
+            var cultureInfo = IdentifyCultures();
 
             dataCollector = new DataCollector(Settings.Default.CarConfigs);
             //dataCollector.AverageFuelPerLap = 1.9f;
             //dataCollector.AverageLapTimeSpan = 66.2.Seconds();
 
-            pitCrew = new PitCrew(dataCollector, cultureInfo);
-
-            Settings.Default.CarConfigs.Changed += CarConfigs_Changed;
             dataCollector.Connected += dc_Connected;
             dataCollector.Disconnected += dc_Disconnected;
             dataCollector.NewSessionData += dc_NewSessionData;
 
-            foreach (var s in SpeechRecognitionEngine.InstalledRecognizers())
-                cultureDropDown.Items.Add(s.Culture.DisplayName);
-
-            cultureDropDown.SelectedItem = cultureInfo.NativeName;
-
+            pitCrew = new PitCrew(dataCollector, cultureInfo);
             pitCrew.Start();
 
+            LoadCarConfigurations();
+            EnableCarDetailsFields();
+
+            BuildVoiceCommandHelpList();
+        }
+
+        void BuildVoiceCommandHelpList()
+        {
+            foreach (var item in new[] {
+                new ListViewItem(new [] {"Fuel Strategy", "Get details of your best fuel strategy to complete race"}),
+                new ListViewItem(new [] {"Race Status", "Get details of your current race status - laps/time remaining"}),
+                new ListViewItem(new [] {"Session Status", "Get details of your current session -- time/fuel usage"}),
+                new ListViewItem(new [] {"Set Fuel <amount> litres", "Set the amount of fuel to get at your next pit stop"}),
+                new ListViewItem(new [] {"Reset", "No tyres fuel or windscreen cleaning at your next pit stop"}),
+                new ListViewItem(new [] {"No Tyre Change", "Will not change tyres at the next pit stop"}),
+                new ListViewItem(new [] {"Change All Tyres", "Will change tyres at the next pit stop"}),
+                new ListViewItem(new [] {"Cancel", "Will cancel your call to the pitcrew"})
+            })
+                pitCrewVoiceCommandsList.Items.Add(item);
+        }
+
+        void LoadCarConfigurations()
+        {
+            Settings.Default.CarConfigs.Changed += CarConfigs_Changed;
             var configurations = Settings.Default.CarConfigs;
 
             if (configurations == null)
@@ -146,20 +151,26 @@ namespace iRacingPitCrew
                 carListCombo.Items.Add(c.CarName);
 
             carListCombo.SelectedItem = Settings.Default.CurrentCarName;
-            EnableCarDetailsFields();
+        }
 
-            foreach (var item in new[] {
-                new ListViewItem(new [] {"Fuel Strategy", "Get details of your best fuel strategy to complete race"}),
-                new ListViewItem(new [] {"Race Status", "Get details of your current race status - laps/time remaining"}),
-                new ListViewItem(new [] {"Session Status", "Get details of your current session -- time/fuel usage"}),
-                new ListViewItem(new [] {"Set Fuel <amount> litres", "Set the amount of fuel to get at your next pit stop"}),
-                new ListViewItem(new [] {"Reset", "No tyres fuel or windscreen cleaning at your next pit stop"}),
-                new ListViewItem(new [] {"No Tyre Change", "Will not change tyres at the next pit stop"}),
-                new ListViewItem(new [] {"Change All Tyres", "Will change tyres at the next pit stop"}),
-                new ListViewItem(new [] {"Cancel", "Will cancel your call to the pitcrew"})
-            }) 
-                pitCrewVoiceCommandsList.Items.Add(item);
+        CultureInfo IdentifyCultures()
+        {
+            var cultureKey = Settings.Default.Culture;
+            if (cultureKey == null || cultureKey == "")
+            {
+                var culture = SpeechRecognitionEngine.InstalledRecognizers().First().Culture;
+                cultureKey = culture.Name;
+                Settings.Default.Culture = cultureKey;
+                Settings.Default.Save();
+            }
 
+            var cultureInfo = new CultureInfo(cultureKey);
+
+            foreach (var s in SpeechRecognitionEngine.InstalledRecognizers())
+                cultureDropDown.Items.Add(s.Culture.DisplayName);
+
+            cultureDropDown.SelectedItem = cultureInfo.NativeName;
+            return cultureInfo;
         }
 
         void Main_Resize(object sender, EventArgs e)
@@ -200,7 +211,7 @@ namespace iRacingPitCrew
             notifyIcon.Visible = false;
         }
 
-        private void Main_FormClosed(object sender, FormClosedEventArgs e)
+        void Main_FormClosed(object sender, FormClosedEventArgs e)
         {
             pitCrew.Stop();
         }
@@ -239,7 +250,7 @@ namespace iRacingPitCrew
             EnableCarDetailsFields();
         }
 
-        private void EnableCarDetailsFields()
+        void EnableCarDetailsFields()
         {
             var carSelected = carListCombo.SelectedItem != null && carListCombo.SelectedItem.ToString() != "";
             raceDurationTextBox.Enabled =
@@ -298,8 +309,8 @@ namespace iRacingPitCrew
 
             Thread.CurrentThread.CurrentCulture = cultureInfo;
             Thread.CurrentThread.CurrentUICulture = cultureInfo;
-            pitCrew.ChangeCulture(cultureInfo);
-
+            if (pitCrew != null)
+                pitCrew.ChangeCulture(cultureInfo);
         }
 
         private void activationFilterCheckBox_CheckedChanged(object sender, EventArgs e)
